@@ -1,5 +1,6 @@
 import {app, BrowserWindow, shell, ipcMain} from 'electron';
 import {join} from 'node:path';
+import {IpcMessage} from './ipc-message';
 
 // The built directory structure
 //
@@ -36,6 +37,8 @@ const preload = join(__dirname, '../preload/index.js');
 const url = process.env.VITE_DEV_SERVER_URL;
 const indexHtml = join(process.env.DIST, 'index.html');
 
+app.disableHardwareAcceleration();
+
 async function createWindow() {
   win = new BrowserWindow({
     title: 'Main window',
@@ -67,7 +70,17 @@ async function createWindow() {
   });
 }
 
-app.whenReady().then(createWindow);
+app.whenReady().then(async () => {
+  await createWindow();
+  ipcMain.on(IpcMessage.GetFileIcon, async (e, path: string) => {
+    const icon = await app.getFileIcon(path, {
+      size: 'large'
+    });
+
+    // TODO: remake with custom icons
+    win?.webContents.send(IpcMessage.GetFileIcon + path, `${icon.toDataURL()}`);
+  });
+});
 
 app.on('window-all-closed', () => {
   win = null;

@@ -12,7 +12,6 @@ type FileListProps = {
   selectedFiles: FileLink[]
 };
 
-
 export const FileList = ({files, selectedFiles, toggleFileSelected, unselectAll}: FileListProps) => {
   const wrapperRef = useRef<HTMLDivElement | null>(null);
 
@@ -69,23 +68,25 @@ const Wrapper = styled.div`
 
 const FileLinkEl = styled.div<{ selected: boolean }>`
   display: flex;
-  width: 4rem;
+  width: 5rem;
   flex-direction: column;
   align-items: center;
   gap: 0.5rem;
   transition: 0.1s;
 
   img {
-    width: 100%;
+    width: 80%;
     height: 4rem;
     object-fit: contain;
+    margin: 0 auto;
   }
 
   span {
     word-break: break-word;
-    padding: 0 0.5rem;
+    padding: 0 0.3rem;
     border-radius: 2px;
     background: ${({selected}) => selected ? 'rgba(114,114,255,0.71)' : 'transparent'};
+    font-size: 0.8em;
   }
 `;
 

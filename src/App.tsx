@@ -1,22 +1,17 @@
 import {DragAndDropZone} from '@/components/DragAndDropZone';
 import styled from 'styled-components';
 import {FileList} from '@/components/FileList';
-import testIcon from '@/assets/electron-vite.svg';
 import type {FileLink} from '@/entities/FileLink';
 import {useEffect} from 'react';
 import {useSelectableData} from '@/hooks/useSelectableData';
-
-const files = Array.from({length: 20}, (_, i) => (
-  {
-    path: 'test' + i,
-    name: 'test',
-    iconUrl: testIcon,
-  }
-));
-
+import {useState} from 'react';
+import {basename} from 'node:path';
+import {lstat} from 'node:fs/promises';
+import {FSApi} from '@/node-api/fs-api';
 
 function App() {
   const {selectedData, toggleSelectedData, clearSelectedData} = useSelectableData<FileLink>();
+  const [files, setFiles] = useState<FileLink[]>([]);
 
   useEffect(() => {
     clearSelectedData();
@@ -24,7 +19,19 @@ function App() {
 
   return (
     <AppWrapper className="App">
-      <DragAndDropZone onFileDropped={console.log}>
+      <DragAndDropZone onFilesDropped={async droppedFilePaths => {
+        const existingPaths = files.map(x => x.path);
+        const newFiles = await Promise.all(droppedFilePaths
+          .filter(path => existingPaths.includes(path) == false)
+          .map(async path => ({
+            path,
+            iconUrl: await FSApi.getFileIcon(path) || '',
+            name: basename(path),
+            isFolder: (await lstat(path)).isDirectory(),
+          })));
+
+        setFiles([...files, ...newFiles]);
+      }}>
         <FileList
           files={files}
           selectedFiles={selectedData}

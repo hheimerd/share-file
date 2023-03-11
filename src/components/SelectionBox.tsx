@@ -1,5 +1,4 @@
 import styled from 'styled-components';
-import {useCallback} from 'react';
 import {useEffect} from 'react';
 import {useRef} from 'react';
 
@@ -28,7 +27,6 @@ export const SelectionBox = ({wrapper, onIntersection}: SelectionBoxProps) => {
     if (!selection.current.enabled || !selectionBox.current)
       return;
 
-
     let width = e.clientX - wrapper.clientLeft - selection.current.x;
     let height = e.clientY - wrapper.clientTop - selection.current.y;
 
@@ -51,7 +49,7 @@ export const SelectionBox = ({wrapper, onIntersection}: SelectionBoxProps) => {
     selectionBox.current.style.height = `${height}px`;
   };
 
-  const endSelect = useCallback(() => {
+  const endSelect = () => {
     if (!selectionBox.current)
       return;
 
@@ -65,16 +63,14 @@ export const SelectionBox = ({wrapper, onIntersection}: SelectionBoxProps) => {
       const box = x.getBoundingClientRect();
 
       return box.bottom > selectorBox.top
-          && box.right > selectorBox.left
-          && box.top < selectorBox.bottom
-          && box.left < selectorBox.right;
+        && box.right > selectorBox.left
+        && box.top < selectorBox.bottom
+        && box.left < selectorBox.right;
     }));
 
     selectionBox.current.style.width = '0';
     selectionBox.current.style.height = '0';
-  },
-  [selectionBox.current],
-  );
+  };
 
   useEffect(() => {
     document.addEventListener('mouseup', endSelect);
@@ -97,4 +93,5 @@ const SelectionBoxEl = styled.div`
   position: absolute;
   top: 0;
   left: 0;
+  will-change: transform;
 `;

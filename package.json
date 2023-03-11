@@ -1,9 +1,9 @@
 {
-  "name": "electron-vite-react",
-  "version": "2.1.0",
+  "name": "share-file",
+  "version": "0.1.1",
   "main": "dist-electron/main/index.js",
-  "description": "Electron Vite React boilerplate.",
-  "author": "草鞋没号 <308487730@qq.com>",
+  "description": "Easy to use D&D File sharing app",
+  "author": "hheimerd",
   "license": "MIT",
   "private": true,
   "debug": {
@@ -41,6 +41,7 @@
     "node": "^14.18.0 || >=16.0.0"
   },
   "dependencies": {
+    "@types/electron": "^1.6.10",
     "@types/styled-components": "^5.1.26",
     "eslint": "^8.35.0",
     "styled-components": "^5.3.8"

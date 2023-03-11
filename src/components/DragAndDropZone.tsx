@@ -9,7 +9,7 @@ interface FileWithPath extends File {
 }
 
 type DragAndDropZoneProps = {
-  onFileDropped?: (filePath: string, isFolder: boolean) => void,
+  onFilesDropped?: (filePaths: string[]) => void,
   children?: ReactNode
 }
 
@@ -25,7 +25,7 @@ const preventAndStop = (e: DragEvent) => {
   e.stopPropagation();
 };
 
-export const DragAndDropZone = ({children, onFileDropped}: DragAndDropZoneProps) => {
+export const DragAndDropZone = ({children, onFilesDropped}: DragAndDropZoneProps) => {
   const [dropHereVisible, setDropHereVisible] = useState(false);
 
   const onDragStart = () => {
@@ -38,13 +38,12 @@ export const DragAndDropZone = ({children, onFileDropped}: DragAndDropZoneProps)
 
   const onDrop = (e: DragEvent) => {
     setDropHereVisible(false);
-    for (const item of e.dataTransfer.items) {
-      const fileEntry = item.webkitGetAsEntry();
-      if (item.kind != 'file' || !fileEntry)
-        return;
 
-      onFileDropped?.((item.getAsFile() as FileWithPath).path, fileEntry.isDirectory);
-    }
+    const newFilePaths =  Array.from(e.dataTransfer.items)
+      .map(f => (f.getAsFile() as FileWithPath | null)?.path)
+      .filter(path => path) as string[];
+
+    onFilesDropped?.(newFilePaths);
   };
 
   return (
