@@ -20,13 +20,9 @@ function preventAndRun(action?: Action<DragEvent>) {
   };
 }
 
-const preventAndStop = (e: DragEvent) => {
-  e.preventDefault();
-  e.stopPropagation();
-};
-
 export const DragAndDropZone = ({children, onFilesDropped}: DragAndDropZoneProps) => {
   const [dropHereVisible, setDropHereVisible] = useState(false);
+  const [isInnerDnD, setIsInnerDnD] = useState(false);
 
   const onDragStart = () => {
     setDropHereVisible(true);
@@ -52,10 +48,10 @@ export const DragAndDropZone = ({children, onFilesDropped}: DragAndDropZoneProps
       onDrop={preventAndRun(onDrop)}
       onDragOver={preventAndRun(onDragStart)}
     >
-      <DropHereBanner show={dropHereVisible}>
+      <DropHereBanner show={!isInnerDnD && dropHereVisible}>
         Drop here
       </DropHereBanner>
-      <Wrapper onDragStart={preventAndStop} onDragOver={preventAndStop} onDragEnd={preventAndStop}>
+      <Wrapper onDragStart={() => setIsInnerDnD(true)} onDragEnd={() => setIsInnerDnD(false)}>
         {children}
       </Wrapper>
 

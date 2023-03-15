@@ -4,6 +4,10 @@ import type {Action} from '@/types/Action';
 import {useRef} from 'react';
 import {SelectionBox} from '@/components/SelectionBox';
 import {keyboardManager} from '@/utils/keyboard-manager';
+import {getIcon} from 'material-file-icons';
+import folderIcon from '@/assets/icons/folder.svg';
+import {useState} from 'react';
+
 
 type FileListProps = {
   files: FileLink[],
@@ -14,21 +18,45 @@ type FileListProps = {
 
 export const FileList = ({files, selectedFiles, toggleFileSelected, unselectAll}: FileListProps) => {
   const wrapperRef = useRef<HTMLDivElement | null>(null);
+  const [dragEl, setDragEl] = useState<FileLink | null>(null);
 
   return (
     <Wrapper ref={wrapperRef}>
+      {files.map(fileLink => {
+        const key = fileLink.path;
+        const selected = selectedFiles.includes(fileLink);
+        return (
+          <FileLinkEl draggable={true} key={key}
+            className="selectable" data-key={key}
+            selected={selected}
+            onDragStart={() => {
+              setDragEl(fileLink);
+              if (!selected)
+                unselectAll();
 
-      {files.map(fileLink => (
-        <FileLinkEl
-          className="selectable" data-key={fileLink.path}
-          key={fileLink.path} selected={selectedFiles.includes(fileLink)}
-        >
-          <img src={fileLink.iconUrl} alt="icon"/>
-          <span>{fileLink.name}</span>
-        </FileLinkEl>
-      ))}
+              toggleFileSelected(fileLink, true);
+            }}
+            onDragEnd={() => setDragEl(null)}
+          >
+            <IconWrapper>
+              {fileLink.isFolder
+                ? <img src={folderIcon} alt="folder"/>
+                : <div dangerouslySetInnerHTML={{__html: getIcon(fileLink.path).svg}}/>
+              }
+            </IconWrapper>
+            <span>{fileLink.name}</span>
+            {
+              dragEl === fileLink && selectedFiles.length > 1 &&
+            <PlusNDrag>
+              +{selectedFiles.length - 1}
+            </PlusNDrag>
+            }
+          </FileLinkEl>
+        );
+      })}
 
-      {wrapperRef.current && <SelectionBox wrapper={wrapperRef.current} onIntersection={(selectedList) => {
+
+      {wrapperRef.current && !dragEl && <SelectionBox wrapper={wrapperRef.current} onIntersection={(selectedList) => {
         const newSelectedFiles = selectedList
           .map(el => files.find(file => file.path == el.getAttribute('data-key')))
           .filter(x => x) as FileLink[];
@@ -67,18 +95,23 @@ const Wrapper = styled.div`
 `;
 
 const FileLinkEl = styled.div<{ selected: boolean }>`
-  display: flex;
   width: 5rem;
+  height: 7rem;
+  position: relative;
+
+  display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0.5rem;
+
   transition: 0.1s;
 
   img {
-    width: 80%;
     height: 4rem;
     object-fit: contain;
     margin: 0 auto;
+    user-drag: none;
+    user-select: none;
   }
 
   span {
@@ -90,3 +123,19 @@ const FileLinkEl = styled.div<{ selected: boolean }>`
   }
 `;
 
+const IconWrapper = styled.div`
+  height: 4rem;
+  margin-bottom: 0.5rem;
+`;
+
+const PlusNDrag = styled.div`
+  position: absolute;
+  bottom: -10px;
+  right: -10px;
+  background: aliceblue;
+  height: 1.5rem;
+  text-align: center;
+  width: 1.5rem;
+  border-radius: 2px;
+  color: black;
+`;

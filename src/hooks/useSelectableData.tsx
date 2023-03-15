@@ -7,6 +7,10 @@ export function useSelectableData<T>(initialData: T[] = []) {
   function toggleSelectedData(data: T, newSelectedState?: boolean) {
     setSelectedData(oldValues => {
       const selected = oldValues.includes(data);
+
+      if (newSelectedState == true && selected)
+        return oldValues;
+
       newSelectedState ??= !selected;
 
       return  newSelectedState

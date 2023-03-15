@@ -7,7 +7,6 @@ import {useSelectableData} from '@/hooks/useSelectableData';
 import {useState} from 'react';
 import {basename} from 'node:path';
 import {lstat} from 'node:fs/promises';
-import {FSApi} from '@/node-api/fs-api';
 
 function App() {
   const {selectedData, toggleSelectedData, clearSelectedData} = useSelectableData<FileLink>();
@@ -25,12 +24,12 @@ function App() {
           .filter(path => existingPaths.includes(path) == false)
           .map(async path => ({
             path,
-            iconUrl: await FSApi.getFileIcon(path) || '',
             name: basename(path),
             isFolder: (await lstat(path)).isDirectory(),
           })));
 
-        setFiles([...files, ...newFiles]);
+        if (newFiles.length)
+          setFiles([...files, ...newFiles]);
       }}>
         <FileList
           files={files}
