@@ -1,16 +1,16 @@
 import styled from 'styled-components';
 import {useEffect} from 'react';
 import {useRef} from 'react';
+import {memo} from 'react';
 
 type SelectionBoxProps = {
   wrapper: HTMLDivElement,
   onIntersection: (target: Element[]) => void
 };
 
-export const SelectionBox = ({wrapper, onIntersection}: SelectionBoxProps) => {
+export const SelectionBox = memo(({wrapper, onIntersection}: SelectionBoxProps) => {
   const selection = useRef({x: 0, y: 0, enabled: false});
   const selectionBox = useRef<HTMLDivElement | null>(null);
-
 
   const startSelect = (e: MouseEvent) => {
     if (!selectionBox.current)
@@ -82,11 +82,13 @@ export const SelectionBox = ({wrapper, onIntersection}: SelectionBoxProps) => {
       wrapper.removeEventListener('pointermove', moveSelection);
       document.removeEventListener('mouseup', endSelect);
     };
-  }, [endSelect]);
+  }, [endSelect, moveSelection, startSelect, wrapper]);
 
 
   return (<SelectionBoxEl ref={selectionBox}/>);
-};
+});
+
+SelectionBox.displayName = 'SelectionBox';
 
 const SelectionBoxEl = styled.div`
   background: rgba(114, 114, 255, 0.71);
