@@ -1,11 +1,10 @@
 import type {FileLink} from '@/entities/FileLink';
+import {FileLink as FileLinkEl} from './FileLink';
 import styled from 'styled-components';
 import type {Action} from '@/types/Action';
 import {useRef} from 'react';
 import {SelectionBox} from '@/components/SelectionBox';
 import {keyboardManager} from '@/utils/keyboard-manager';
-import {getIcon} from 'material-file-icons';
-import folderIcon from '@/assets/icons/folder.svg';
 import {useState} from 'react';
 
 
@@ -20,60 +19,53 @@ export const FileList = ({files, selectedFiles, toggleFileSelected, unselectAll}
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const [dragEl, setDragEl] = useState<FileLink | null>(null);
 
+  const handleBoxSelection = (selectedList: Element[]) => {
+    const newSelectedFiles = selectedList
+      .map(el => files.find(file => file.path == el.getAttribute('data-key')))
+      .filter(x => x) as FileLink[];
+
+    if (!keyboardManager.ctrlCmd && !keyboardManager.shift)
+      unselectAll();
+
+    for (const newSelectedFile of newSelectedFiles) {
+      if (keyboardManager.shift)
+        toggleFileSelected(newSelectedFile, true);
+      else if (keyboardManager.ctrlCmd)
+        toggleFileSelected(newSelectedFile);
+      else
+        toggleFileSelected(newSelectedFile, true);
+    }
+  };
+
+
   return (
     <Wrapper ref={wrapperRef}>
       {files.map(fileLink => {
         const key = fileLink.path;
         const selected = selectedFiles.includes(fileLink);
-        return (
-          <FileLinkEl draggable={true} key={key}
-            className="selectable" data-key={key}
-            selected={selected}
-            onDragStart={() => {
-              setDragEl(fileLink);
-              if (!selected)
-                unselectAll();
+        const dragging = dragEl == fileLink;
 
-              toggleFileSelected(fileLink, true);
-            }}
+        const handleFileDragStart = () => {
+          setDragEl(fileLink);
+          if (!selected)
+            unselectAll();
+
+          toggleFileSelected(fileLink, true);
+        };
+
+        return (
+          <FileLinkEl
+            fileLink={fileLink} selected={selected}
+            key={key} className="selectable" data-key={key}
+            onDragStart={handleFileDragStart}
             onDragEnd={() => setDragEl(null)}
-          >
-            <IconWrapper>
-              {fileLink.isFolder
-                ? <img src={folderIcon} alt="folder"/>
-                : <div dangerouslySetInnerHTML={{__html: getIcon(fileLink.path).svg}}/>
-              }
-            </IconWrapper>
-            <span>{fileLink.name}</span>
-            {
-              dragEl === fileLink && selectedFiles.length > 1 &&
-            <PlusNDrag>
-              +{selectedFiles.length - 1}
-            </PlusNDrag>
-            }
-          </FileLinkEl>
+            dragFilesCount={dragging ? selectedFiles.length : 0}
+          />
         );
       })}
 
-
-      {wrapperRef.current && !dragEl && <SelectionBox wrapper={wrapperRef.current} onIntersection={(selectedList) => {
-        const newSelectedFiles = selectedList
-          .map(el => files.find(file => file.path == el.getAttribute('data-key')))
-          .filter(x => x) as FileLink[];
-
-        if (!keyboardManager.ctrlCmd && !keyboardManager.shift)
-          unselectAll();
-
-        for (const newSelectedFile of newSelectedFiles) {
-          if (keyboardManager.shift)
-            toggleFileSelected(newSelectedFile, true);
-          else if (keyboardManager.ctrlCmd)
-            toggleFileSelected(newSelectedFile);
-          else
-            toggleFileSelected(newSelectedFile, true);
-        }
-      }
-      }/>}
+      {wrapperRef.current && !dragEl &&
+        <SelectionBox wrapper={wrapperRef.current} onIntersection={handleBoxSelection}/>}
 
     </Wrapper>
   );
@@ -94,48 +86,3 @@ const Wrapper = styled.div`
 
 `;
 
-const FileLinkEl = styled.div<{ selected: boolean }>`
-  width: 5rem;
-  height: 7rem;
-  position: relative;
-
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-
-  transition: 0.1s;
-
-  img {
-    height: 4rem;
-    object-fit: contain;
-    margin: 0 auto;
-    user-drag: none;
-    user-select: none;
-  }
-
-  span {
-    word-break: break-word;
-    padding: 0 0.3rem;
-    border-radius: 2px;
-    background: ${({selected}) => selected ? 'rgba(114,114,255,0.71)' : 'transparent'};
-    font-size: 0.8em;
-  }
-`;
-
-const IconWrapper = styled.div`
-  height: 4rem;
-  margin-bottom: 0.5rem;
-`;
-
-const PlusNDrag = styled.div`
-  position: absolute;
-  bottom: -10px;
-  right: -10px;
-  background: aliceblue;
-  height: 1.5rem;
-  text-align: center;
-  width: 1.5rem;
-  border-radius: 2px;
-  color: black;
-`;
