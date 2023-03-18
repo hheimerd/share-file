@@ -6,22 +6,36 @@ import {useRef} from 'react';
 import {SelectionBox} from '@/components/SelectionBox';
 import {keyboardManager} from '@/utils/keyboard-manager';
 import {useState} from 'react';
+import {readdir} from 'node:fs/promises';
+import {makeFileList} from '@/entities/FileLink';
+import {join} from 'node:path';
+import {useEffect} from 'react';
+import {useCallback} from 'react';
 
 
 type FileListProps = {
   files: FileLink[],
   toggleFileSelected: (file: FileLink, selected?: boolean) => void,
   unselectAll: Action,
-  selectedFiles: FileLink[]
+  selectedFiles: FileLink[],
+  onGoBack?: () => void
 };
 
-export const FileList = ({files, selectedFiles, toggleFileSelected, unselectAll}: FileListProps) => {
+const dataKeyAttribute = 'data-key';
+
+export const FileList = ({files, selectedFiles, toggleFileSelected, onGoBack, unselectAll}: FileListProps) => {
+  const [filesWrapper, setFilesWrapper] = useState<HTMLDivElement | null>(null);
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const [dragEl, setDragEl] = useState<FileLink | null>(null);
+  const [openedFolderContent, setOpenedFolderContent] = useState<FileLink[]>([]);
+  const [backSelected, setBackSelected] = useState(false);
+  const sortedFiles = files.sort((a, b) => (a.isFolder ? 0 : 1) - (b.isFolder ? 0 : 1));
 
-  const handleBoxSelection = (selectedList: Element[]) => {
+  const handleBoxSelection = useCallback((selectedList: Element[]) => {
+    setBackSelected(false);
+
     const newSelectedFiles = selectedList
-      .map(el => files.find(file => file.path == el.getAttribute('data-key')))
+      .map(el => sortedFiles.find(file => file.path == el.getAttribute(dataKeyAttribute)))
       .filter(x => x) as FileLink[];
 
     if (!keyboardManager.ctrlCmd && !keyboardManager.shift)
@@ -35,41 +49,78 @@ export const FileList = ({files, selectedFiles, toggleFileSelected, unselectAll}
       else
         toggleFileSelected(newSelectedFile, true);
     }
+  }, [toggleFileSelected, unselectAll, sortedFiles]);
+
+  const openFileHandler = async (fileLink: FileLink) => {
+    unselectAll();
+
+    if (fileLink.isFolder) {
+      const fileNames = await readdir(fileLink.path);
+      const filePaths = fileNames.map(fileName => join(fileLink.path, fileName));
+      setOpenedFolderContent(await Promise.all(filePaths.map(makeFileList)));
+    } else {
+      return; // TODO: Handle file open
+    }
   };
 
+  useEffect(() => {
+    setFilesWrapper(wrapperRef.current); // wrapperRef.current is null after go to the back directory
+  }, [openedFolderContent]);
 
   return (
-    <Wrapper ref={wrapperRef}>
-      {files.map(fileLink => {
-        const key = fileLink.path;
-        const selected = selectedFiles.includes(fileLink);
-        const dragging = dragEl == fileLink;
+    openedFolderContent.length > 0
+      ? <FileList
+        files={openedFolderContent} selectedFiles={selectedFiles} onGoBack={() => setOpenedFolderContent([])}
+        unselectAll={unselectAll} toggleFileSelected={toggleFileSelected}
+      />
+      : <Wrapper ref={wrapperRef}>
 
-        const handleFileDragStart = () => {
-          setDragEl(fileLink);
-          if (!selected)
-            unselectAll();
-
-          toggleFileSelected(fileLink, true);
-        };
-
-        return (
+        {/* Go back folder (...)*/}
+        {onGoBack &&
           <FileLinkEl
-            fileLink={fileLink} selected={selected}
-            key={key} className="selectable" data-key={key}
-            onDragStart={handleFileDragStart}
-            onDragEnd={() => setDragEl(null)}
-            dragFilesCount={dragging ? selectedFiles.length : 0}
+            selected={backSelected}
+            onClick={() => {
+              unselectAll();
+              setBackSelected(true);
+            }}
+            fileLink={{path: '..', name: '..', isFolder: true}}
+            onDoubleClickCapture={() => onGoBack?.()}
           />
-        );
-      })}
+        }
 
-      {wrapperRef.current && !dragEl &&
-        <SelectionBox wrapper={wrapperRef.current} onIntersection={handleBoxSelection}/>}
+        {/* Other files*/}
+        {sortedFiles.map(fileLink => {
+          const key = fileLink.path;
+          const selected = selectedFiles.includes(fileLink);
+          const dragging = dragEl == fileLink;
 
-    </Wrapper>
+          const handleFileDragStart = () => {
+            setDragEl(fileLink);
+            if (!selected)
+              unselectAll();
+
+            toggleFileSelected(fileLink, true);
+          };
+
+          return (
+            <FileLinkEl
+              fileLink={fileLink} selected={selected}
+              key={key} className="selectable" data-key={key}
+              onDragStart={handleFileDragStart}
+              onDragEnd={() => setDragEl(null)}
+              dragFilesCount={dragging ? selectedFiles.length : 0}
+              onDoubleClickCapture={() => openFileHandler(fileLink)}
+            />
+          );
+        })}
+
+        {filesWrapper && !dragEl &&
+          <SelectionBox wrapper={filesWrapper} onIntersection={handleBoxSelection}/>}
+
+      </Wrapper>
   );
 };
+
 
 const Wrapper = styled.div`
   display: flex;
