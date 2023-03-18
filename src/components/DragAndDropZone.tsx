@@ -24,29 +24,29 @@ export const DragAndDropZone = ({children, onFilesDropped}: DragAndDropZoneProps
   const [dropHereVisible, setDropHereVisible] = useState(false);
   const [isInnerDnD, setIsInnerDnD] = useState(false);
 
-  const onDragStart = () => {
+  const handleDragStart = () => {
     setDropHereVisible(true);
   };
 
-  const onDragEnd = () => {
+  const handleDragEnd = () => {
     setDropHereVisible(false);
   };
 
-  const onDrop = (e: DragEvent) => {
+  const handleDrop = (e: DragEvent) => {
     setDropHereVisible(false);
 
     const newFilePaths =  Array.from(e.dataTransfer.items)
       .map(f => (f.getAsFile() as FileWithPath | null)?.path)
-      .filter(path => path) as string[];
+      .filter(path => path && path.length > 3) as string[];
 
     onFilesDropped?.(newFilePaths);
   };
 
   return (
     <Wrapper
-      onDragLeave={preventAndRun(onDragEnd)}
-      onDrop={preventAndRun(onDrop)}
-      onDragOver={preventAndRun(onDragStart)}
+      onDragLeave={preventAndRun(handleDragEnd)}
+      onDrop={preventAndRun(handleDrop)}
+      onDragOver={preventAndRun(handleDragStart)}
     >
       <DropHereBanner show={!isInnerDnD && dropHereVisible}>
         Drop here

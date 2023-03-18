@@ -5,8 +5,7 @@ import type {FileLink} from '@/entities/FileLink';
 import {useEffect} from 'react';
 import {useSelectableData} from '@/hooks/useSelectableData';
 import {useState} from 'react';
-import {basename} from 'node:path';
-import {lstat} from 'node:fs/promises';
+import {makeFileList} from '@/entities/FileLink';
 
 function App() {
   const {selectedData, toggleSelectedData, clearSelectedData} = useSelectableData<FileLink>();
@@ -16,21 +15,21 @@ function App() {
     clearSelectedData();
   }, [files]);
 
+  const handleFilesDrop = async (droppedFilePaths: string[]) => {
+    const existingPaths = files.map(x => x.path);
+    const newFiles = await Promise.all(
+      droppedFilePaths
+        .filter(path => !existingPaths.includes(path))
+        .map(makeFileList),
+    );
+
+    if (newFiles.length)
+      setFiles([...files, ...newFiles]);
+  };
+
   return (
     <AppWrapper className="App">
-      <DragAndDropZone onFilesDropped={async droppedFilePaths => {
-        const existingPaths = files.map(x => x.path);
-        const newFiles = await Promise.all(droppedFilePaths
-          .filter(path => existingPaths.includes(path) == false)
-          .map(async path => ({
-            path,
-            name: basename(path),
-            isFolder: (await lstat(path)).isDirectory(),
-          })));
-
-        if (newFiles.length)
-          setFiles([...files, ...newFiles]);
-      }}>
+      <DragAndDropZone onFilesDropped={handleFilesDrop}>
         <FileList
           files={files}
           selectedFiles={selectedData}
