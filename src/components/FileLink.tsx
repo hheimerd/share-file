@@ -3,6 +3,7 @@ import {getIcon} from 'material-file-icons';
 import styled from 'styled-components';
 import type {FileLink as FLink} from '@/entities/FileLink';
 import type {HTMLAttributes} from 'react';
+import {css} from 'styled-components';
 
 type FileLinkProps = {
   fileLink: FLink,
@@ -16,7 +17,6 @@ export function FileLink({fileLink, selected, dragFilesCount = 0, ...divProps}: 
     <FileLinkEl draggable={true}
       {...divProps}
       selected={selected}
-
     >
       <IconWrapper>
         {fileLink.isFolder
@@ -37,7 +37,7 @@ export function FileLink({fileLink, selected, dragFilesCount = 0, ...divProps}: 
 
 const FileLinkEl = styled.div<{ selected: boolean }>`
   width: 5rem;
-  height: 7rem;
+  height: 7.5rem;
   position: relative;
 
   display: flex;
@@ -61,6 +61,16 @@ const FileLinkEl = styled.div<{ selected: boolean }>`
     border-radius: 2px;
     background: ${({selected}) => selected ? 'rgba(114,114,255,0.71)' : 'transparent'};
     font-size: 0.8em;
+
+    text-align: center;
+    ${({selected}) => !selected && css`
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    `}
+
   }
 `;
 
