@@ -1,17 +1,18 @@
 import folderIcon from '@/assets/icons/folder.svg';
 import {getIcon} from 'material-file-icons';
 import styled from 'styled-components';
-import type {FileLink as FLink} from '@/entities/FileLink';
 import type {HTMLAttributes} from 'react';
 import {css} from 'styled-components';
+import type {AnyDescriptor, BackDescriptor} from '@/entities/Descriptor';
+import { isDir} from '@/entities/Descriptor';
 
 type FileLinkProps = {
-  fileLink: FLink,
+  descriptor: AnyDescriptor | BackDescriptor,
   selected: boolean,
   dragFilesCount?: number
 } & HTMLAttributes<HTMLDivElement>
 
-export function FileLink({fileLink, selected, dragFilesCount = 0, ...divProps}: FileLinkProps) {
+export function FileLink({descriptor, selected, dragFilesCount = 0, ...divProps}: FileLinkProps) {
   return (
 
     <FileLinkEl draggable={true}
@@ -19,12 +20,12 @@ export function FileLink({fileLink, selected, dragFilesCount = 0, ...divProps}: 
       selected={selected}
     >
       <IconWrapper>
-        {fileLink.isFolder
+        {isDir(descriptor)
           ? <img src={folderIcon} alt="folder"/>
-          : <div dangerouslySetInnerHTML={{__html: getIcon(fileLink.path).svg}}/>
+          : <div dangerouslySetInnerHTML={{__html: getIcon(descriptor.path).svg}}/>
         }
       </IconWrapper>
-      <span>{fileLink.name}</span>
+      <span>{descriptor.name}</span>
       {
         dragFilesCount > 1 &&
         <PlusNDrag>

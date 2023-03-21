@@ -1,15 +1,10 @@
 import type {Action} from '@/types/Action';
-import type {ReactNode} from 'react';
-import type {DragEvent} from 'react';
-import styled from 'styled-components';
+import type {DragEvent, ReactNode} from 'react';
 import {useState} from 'react';
-
-interface FileWithPath extends File {
-  path: string
-}
+import styled from 'styled-components';
 
 type DragAndDropZoneProps = {
-  onFilesDropped?: (filePaths: string[]) => void,
+  onFilesDropped?: (dataTransfer: DataTransfer) => void,
   children?: ReactNode
 }
 
@@ -34,12 +29,7 @@ export const DragAndDropZone = ({children, onFilesDropped}: DragAndDropZoneProps
 
   const handleDrop = (e: DragEvent) => {
     setDropHereVisible(false);
-
-    const newFilePaths =  Array.from(e.dataTransfer.items)
-      .map(f => (f.getAsFile() as FileWithPath | null)?.path)
-      .filter(path => path && path.length > 3) as string[];
-
-    onFilesDropped?.(newFilePaths);
+    onFilesDropped?.(e.dataTransfer);
   };
 
   return (
@@ -76,7 +66,7 @@ const DropHereBanner = styled.div<{ show: boolean }>`
 
   align-items: center;
   justify-content: center;
-  
+
   background: rgba(26, 26, 26, 0.75);
   opacity: ${({show}) => show ? 1 : 0};
   transition: 0.2s;

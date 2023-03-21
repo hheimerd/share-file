@@ -1,30 +1,32 @@
 import {DragAndDropZone} from '@/components/DragAndDropZone';
 import styled from 'styled-components';
 import {FileList} from '@/components/FileList';
-import type {FileLink} from '@/entities/FileLink';
 import {useEffect} from 'react';
 import {useSelectableData} from '@/hooks/useSelectableData';
 import {useState} from 'react';
-import {makeFileList} from '@/entities/FileLink';
+import {fileRepository} from '@/data/files-repository';
+import type {AnyDescriptor} from '@/entities/Descriptor';
 
 function App() {
-  const {selectedData, toggleSelectedData, clearSelectedData} = useSelectableData<FileLink>();
-  const [files, setFiles] = useState<FileLink[]>([]);
+  const {selectedData, toggleSelectedData, clearSelectedData} = useSelectableData<AnyDescriptor>();
+  const [files, setFiles] = useState<AnyDescriptor[]>([]);
 
   useEffect(() => {
     clearSelectedData();
   }, [files]);
 
-  const handleFilesDrop = async (droppedFilePaths: string[]) => {
-    const existingPaths = files.map(x => x.path);
+  const handleFilesDrop = async (dataTransfer: DataTransfer) => {
+    const alreadyAdded = files.map(x => x.path);
+    
     const newFiles = await Promise.all(
-      droppedFilePaths
-        .filter(path => !existingPaths.includes(path))
-        .map(makeFileList),
+      Array.from(dataTransfer.items)
+        .map(item => item.webkitGetAsEntry())
+        .filter(entry => entry && !alreadyAdded.includes(entry.fullPath))
+        .map(async entry=> await fileRepository.createDescriptor(entry!)),
     );
 
     if (newFiles.length)
-      setFiles([...files, ...newFiles]);
+      setFiles(files => [...files, ...newFiles]);
   };
 
   return (

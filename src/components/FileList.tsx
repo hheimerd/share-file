@@ -1,23 +1,17 @@
-import type {FileLink} from '@/entities/FileLink';
 import {FileLink as FileLinkEl} from './FileLink';
 import styled from 'styled-components';
 import type {Action} from '@/types/Action';
-import {useRef} from 'react';
+import {useCallback, useEffect, useRef, useState} from 'react';
 import {SelectionBox} from '@/components/SelectionBox';
 import {keyboardManager} from '@/utils/keyboard-manager';
-import {useState} from 'react';
-import {readdir} from 'node:fs/promises';
-import {makeFileList} from '@/entities/FileLink';
-import {join} from 'node:path';
-import {useEffect} from 'react';
-import {useCallback} from 'react';
-
+import type {AnyDescriptor} from '@/entities/Descriptor';
+import {BackDescriptor, DescriptorType} from '@/entities/Descriptor';
 
 type FileListProps = {
-  files: FileLink[],
-  toggleFileSelected: (file: FileLink, selected?: boolean) => void,
+  files: AnyDescriptor[],
+  toggleFileSelected: (file: AnyDescriptor, selected?: boolean) => void,
   unselectAll: Action,
-  selectedFiles: FileLink[],
+  selectedFiles: AnyDescriptor[],
   onGoBack?: () => void
 };
 
@@ -26,17 +20,17 @@ const dataKeyAttribute = 'data-key';
 export const FileList = ({files, selectedFiles, toggleFileSelected, onGoBack, unselectAll}: FileListProps) => {
   const [filesWrapper, setFilesWrapper] = useState<HTMLDivElement | null>(null);
   const wrapperRef = useRef<HTMLDivElement | null>(null);
-  const [dragEl, setDragEl] = useState<FileLink | null>(null);
-  const [openedFolderContent, setOpenedFolderContent] = useState<FileLink[]>([]);
+  const [dragEl, setDragEl] = useState<AnyDescriptor | null>(null);
+  const [openedFolderContent, setOpenedFolderContent] = useState<AnyDescriptor[]>([]);
   const [backSelected, setBackSelected] = useState(false);
-  const sortedFiles = files.sort((a, b) => (a.isFolder ? 0 : 1) - (b.isFolder ? 0 : 1));
+  const sortedFiles = files.sort((a, b) => a.type - b.type);
 
   const handleBoxSelection = useCallback((selectedList: Element[]) => {
     setBackSelected(false);
 
     const newSelectedFiles = selectedList
-      .map(el => sortedFiles.find(file => file.path == el.getAttribute(dataKeyAttribute)))
-      .filter(x => x) as FileLink[];
+      .map(el => sortedFiles.find(file => file.id == el.getAttribute(dataKeyAttribute)))
+      .filter(x => x) as AnyDescriptor[];
 
     if (!keyboardManager.ctrlCmd && !keyboardManager.shift)
       unselectAll();
@@ -51,13 +45,11 @@ export const FileList = ({files, selectedFiles, toggleFileSelected, onGoBack, un
     }
   }, [toggleFileSelected, unselectAll, sortedFiles]);
 
-  const openFileHandler = async (fileLink: FileLink) => {
+  const openFileHandler = async (fileLink: AnyDescriptor) => {
     unselectAll();
 
-    if (fileLink.isFolder) {
-      const fileNames = await readdir(fileLink.path);
-      const filePaths = fileNames.map(fileName => join(fileLink.path, fileName));
-      setOpenedFolderContent(await Promise.all(filePaths.map(makeFileList)));
+    if (fileLink.type === DescriptorType.LocalDirectory) {
+      setOpenedFolderContent(fileLink.content);
     } else {
       return; // TODO: Handle file open
     }
@@ -83,14 +75,14 @@ export const FileList = ({files, selectedFiles, toggleFileSelected, onGoBack, un
               unselectAll();
               setBackSelected(true);
             }}
-            fileLink={{path: '..', name: '..', isFolder: true}}
+            descriptor={BackDescriptor}
             onDoubleClickCapture={() => onGoBack?.()}
           />
         }
 
         {/* Other files*/}
         {sortedFiles.map(fileLink => {
-          const key = fileLink.path;
+          const key = fileLink.id;
           const selected = selectedFiles.includes(fileLink);
           const dragging = dragEl == fileLink;
 
@@ -104,7 +96,7 @@ export const FileList = ({files, selectedFiles, toggleFileSelected, onGoBack, un
 
           return (
             <FileLinkEl
-              fileLink={fileLink} selected={selected}
+              descriptor={fileLink} selected={selected}
               key={key} className="selectable" data-key={key}
               onDragStart={handleFileDragStart}
               onDragEnd={() => setDragEl(null)}
@@ -136,4 +128,3 @@ const Wrapper = styled.div`
   align-content: flex-start;
 
 `;
-
