@@ -34,3 +34,4 @@ export type BackDescriptor = {
 }
 
 export type AnyDescriptor = LocalDirDescriptor | LocalFileDescriptor;
+export type LocalDescriptor = LocalDirDescriptor | LocalFileDescriptor;

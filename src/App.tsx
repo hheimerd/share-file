@@ -6,17 +6,20 @@ import {useSelectableData} from '@/hooks/useSelectableData';
 import {useState} from 'react';
 import {fileRepository} from '@/data/files-repository';
 import type {AnyDescriptor} from '@/entities/Descriptor';
+import type {LocalDescriptor} from '@/entities/Descriptor';
+import {Tabs} from '@/components/Tabs';
 
 function App() {
   const {selectedData, toggleSelectedData, clearSelectedData} = useSelectableData<AnyDescriptor>();
-  const [files, setFiles] = useState<AnyDescriptor[]>([]);
+  const [localFiles, setLocalFiles] = useState<LocalDescriptor[]>([]);
+  const [tab, setTab] = useState(0);
 
   useEffect(() => {
     clearSelectedData();
-  }, [files]);
+  }, [localFiles]);
 
   const handleFilesDrop = async (dataTransfer: DataTransfer) => {
-    const alreadyAdded = files.map(x => x.path);
+    const alreadyAdded = localFiles.map(x => x.path);
     
     const newFiles = await Promise.all(
       Array.from(dataTransfer.items)
@@ -26,14 +29,15 @@ function App() {
     );
 
     if (newFiles.length)
-      setFiles(files => [...files, ...newFiles]);
+      setLocalFiles(files => [...files, ...newFiles]);
   };
 
   return (
     <AppWrapper className="App">
+      <Tabs selected={tab} tabs={['Upload ⬆️', 'Download ⬇️']} onTabSelect={setTab}/>
       <DragAndDropZone onFilesDropped={handleFilesDrop}>
         <FileList
-          files={files}
+          files={localFiles}
           selectedFiles={selectedData}
           toggleFileSelected={toggleSelectedData}
           unselectAll={clearSelectedData}
