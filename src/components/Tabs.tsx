@@ -1,5 +1,6 @@
 import styled from 'styled-components';
 import type {ReactNode} from 'react';
+import {hoverable} from '@/styles/mixins';
 
 type TabsProps = {
   tabs: ReactNode[],
@@ -43,8 +44,6 @@ const Tab = styled.div<{selectionColor: string, selected: boolean}>`
 
   background: ${({selected}) => selected ? 'transparent' : 'rgba(0,0,0,0.3)'};
   border-top: 3px solid ${({selectionColor, selected}) => selected ? selectionColor : 'transparent'};
-  
-  :hover {
-    background: rgba(255, 255, 255, 0.06);
-  }
+
+  ${hoverable};
 `;
