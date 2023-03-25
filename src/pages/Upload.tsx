@@ -1,6 +1,6 @@
 import {useSelectableData} from '@/hooks/useSelectableData';
 import type {AnyDescriptor, LocalDescriptor} from '@/entities/Descriptor';
-import {useEffect, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import {fileRepository} from '@/data/files-repository';
 import {DragAndDropZone} from '@/components/DragAndDropZone';
 import {FileList} from '@/components/FileList';
@@ -9,23 +9,40 @@ type UploadProps = {
   className?: string
 }
 
+function createFileHash(file: File) {
+  return `${file.path}${file.lastModified}${file.size}`;
+}
+
 export function Upload({className}: UploadProps) {
   const {selectedData, toggleSelectedData, clearSelectedData} = useSelectableData<AnyDescriptor>();
   const [localFiles, setLocalFiles] = useState<LocalDescriptor[]>([]);
+  const filesHash = useRef<string[]>([]);
 
   useEffect(() => {
     clearSelectedData();
   }, [localFiles]);
 
   const handleFilesDrop = async (dataTransfer: DataTransfer) => {
-    const alreadyAdded = localFiles.map(x => x.path);
+    const newFiles: LocalDescriptor[] = [];
 
-    const newFiles = await Promise.all(
-      Array.from(dataTransfer.items)
-        .map(item => item.webkitGetAsEntry())
-        .filter(entry => entry && !alreadyAdded.includes(entry.fullPath))
-        .map(async entry => await fileRepository.createDescriptor(entry!)),
-    );
+    for (const item of dataTransfer.items) {
+      const file = item.getAsFile();
+      if (!file) continue;
+
+      const hash = createFileHash(file);
+      if (filesHash.current.includes(hash))
+        continue;
+
+      filesHash.current.push(hash);
+
+      const entry = item.webkitGetAsEntry();
+      if (!entry)
+        continue;
+
+      const path = file?.path ?? entry.fullPath;
+
+      newFiles.push(await fileRepository.createDescriptor(entry, path));
+    }
 
     if (newFiles.length)
       setLocalFiles(files => [...files, ...newFiles]);

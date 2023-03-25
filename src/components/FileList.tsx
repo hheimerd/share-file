@@ -49,7 +49,7 @@ export const FileList = ({files, selectedFiles, toggleFileSelected, onGoBack, un
     unselectAll();
 
     if (fileLink.type === DescriptorType.LocalDirectory) {
-      setOpenedFolderContent(fileLink.content);
+      setOpenedFolderContent(await fileLink.content());
     } else {
       return; // TODO: Handle file open
     }

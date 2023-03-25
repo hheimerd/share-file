@@ -1,5 +1,6 @@
 import type {LocalFileDescriptor} from '@/entities/LocalFileDescriptor';
 import type {LocalDirDescriptor} from '@/entities/LocalDirDescriptor';
+import {v4 as uuid} from 'uuid';
 
 export enum DescriptorType {
   Back = 0,
@@ -9,10 +10,16 @@ export enum DescriptorType {
   RemoteDirectory = 2
 }
 
-export interface Descriptor {
+export abstract class Descriptor {
   id: string;
   name: string;
-  type: DescriptorType;
+  abstract type: DescriptorType;
+
+
+  constructor(name: string) {
+    this.id = uuid();
+    this.name = name;
+  }
 }
 
 export function isDir(descriptor: Descriptor): descriptor is LocalDirDescriptor | BackDescriptor { // TODO: add remote dir type
