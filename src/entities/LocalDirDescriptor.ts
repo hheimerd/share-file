@@ -1,6 +1,6 @@
 import {Descriptor, DescriptorType} from '@/entities/Descriptor';
 import type {LocalFileDescriptor} from '@/entities/LocalFileDescriptor';
-import {fileRepository} from '@/data/files-repository';
+import {fileRepository} from '@/data/local-files.repository';
 
 function readDirEntriesAsync(entry: FileSystemDirectoryEntry): Promise<FileSystemEntry[]> {
   const reader = entry.createReader();

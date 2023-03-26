@@ -1,9 +1,10 @@
 import {useSelectableData} from '@/hooks/useSelectableData';
-import type {AnyDescriptor, LocalDescriptor} from '@/entities/Descriptor';
+import type {Descriptor, LocalDescriptor} from '@/entities/Descriptor';
 import {useEffect, useRef, useState} from 'react';
-import {fileRepository} from '@/data/files-repository';
+import {fileRepository} from '@/data/local-files.repository';
 import {DragAndDropZone} from '@/components/DragAndDropZone';
 import {FileList} from '@/components/FileList';
+import styled from 'styled-components';
 
 type UploadProps = {
   className?: string
@@ -14,7 +15,7 @@ function createFileHash(file: File) {
 }
 
 export function Upload({className}: UploadProps) {
-  const {selectedData, toggleSelectedData, clearSelectedData} = useSelectableData<AnyDescriptor>();
+  const {selectedData, toggleSelectedData, clearSelectedData} = useSelectableData<Descriptor>();
   const [localFiles, setLocalFiles] = useState<LocalDescriptor[]>([]);
   const filesHash = useRef<string[]>([]);
 
@@ -49,7 +50,7 @@ export function Upload({className}: UploadProps) {
   };
 
   return (
-    <div className={className}>
+    <Wrapper className={className}>
       <DragAndDropZone onFilesDropped={handleFilesDrop}>
         <FileList
           files={localFiles}
@@ -58,6 +59,10 @@ export function Upload({className}: UploadProps) {
           unselectAll={clearSelectedData}
         />
       </DragAndDropZone>
-    </div>
+    </Wrapper>
   );
 }
+
+const Wrapper = styled.div`
+  padding: 1rem;
+`;

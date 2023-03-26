@@ -28,9 +28,9 @@ export const EnterPeerAddressForm = ({className, onSubmit, error}: EnterIpForm) 
 const Wrapper = styled.div`
   display: flex;
   flex-direction: row;
-  width: content-box;
-  height: content-box;
+  width: fit-content;
   position: relative;
+  height: 72px;
 `;
 
 const SubmitButton = styled.button`

@@ -1,13 +1,12 @@
 import folderIcon from '@/assets/icons/folder.svg';
 import {getIcon} from 'material-file-icons';
-import styled from 'styled-components';
+import styled, {css} from 'styled-components';
 import type {HTMLAttributes} from 'react';
-import {css} from 'styled-components';
-import type {AnyDescriptor, BackDescriptor} from '@/entities/Descriptor';
-import { isDir} from '@/entities/Descriptor';
+import type {BackDescriptor, Descriptor} from '@/entities/Descriptor';
+import {isDir} from '@/entities/Descriptor';
 
 type FileLinkProps = {
-  descriptor: AnyDescriptor | BackDescriptor,
+  descriptor: Descriptor | BackDescriptor,
   selected: boolean,
   dragFilesCount?: number
 } & HTMLAttributes<HTMLDivElement>
@@ -22,7 +21,7 @@ export function FileLink({descriptor, selected, dragFilesCount = 0, ...divProps}
       <IconWrapper>
         {isDir(descriptor)
           ? <img src={folderIcon} alt="folder"/>
-          : <div dangerouslySetInnerHTML={{__html: getIcon(descriptor.path).svg}}/>
+          : <div dangerouslySetInnerHTML={{__html: getIcon(descriptor.name).svg}}/>
         }
       </IconWrapper>
       <span>{descriptor.name}</span>

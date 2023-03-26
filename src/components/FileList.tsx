@@ -4,14 +4,14 @@ import type {Action} from '@/types/Action';
 import {useCallback, useEffect, useRef, useState} from 'react';
 import {SelectionBox} from '@/components/SelectionBox';
 import {keyboardManager} from '@/utils/keyboard-manager';
-import type {AnyDescriptor} from '@/entities/Descriptor';
+import type {Descriptor} from '@/entities/Descriptor';
 import {BackDescriptor, DescriptorType} from '@/entities/Descriptor';
 
 type FileListProps = {
-  files: AnyDescriptor[],
-  toggleFileSelected: (file: AnyDescriptor, selected?: boolean) => void,
+  files: Descriptor[],
+  toggleFileSelected: (file: Descriptor, selected?: boolean) => void,
   unselectAll: Action,
-  selectedFiles: AnyDescriptor[],
+  selectedFiles: Descriptor[],
   onGoBack?: () => void
 };
 
@@ -20,8 +20,8 @@ const dataKeyAttribute = 'data-key';
 export const FileList = ({files, selectedFiles, toggleFileSelected, onGoBack, unselectAll}: FileListProps) => {
   const [filesWrapper, setFilesWrapper] = useState<HTMLDivElement | null>(null);
   const wrapperRef = useRef<HTMLDivElement | null>(null);
-  const [dragEl, setDragEl] = useState<AnyDescriptor | null>(null);
-  const [openedFolderContent, setOpenedFolderContent] = useState<AnyDescriptor[]>([]);
+  const [dragEl, setDragEl] = useState<Descriptor | null>(null);
+  const [openedFolderContent, setOpenedFolderContent] = useState<Descriptor[]>([]);
   const [backSelected, setBackSelected] = useState(false);
   const sortedFiles = files.sort((a, b) => a.type - b.type);
 
@@ -30,7 +30,7 @@ export const FileList = ({files, selectedFiles, toggleFileSelected, onGoBack, un
 
     const newSelectedFiles = selectedList
       .map(el => sortedFiles.find(file => file.id == el.getAttribute(dataKeyAttribute)))
-      .filter(x => x) as AnyDescriptor[];
+      .filter(x => x) as Descriptor[];
 
     if (!keyboardManager.ctrlCmd && !keyboardManager.shift)
       unselectAll();
@@ -45,11 +45,12 @@ export const FileList = ({files, selectedFiles, toggleFileSelected, onGoBack, un
     }
   }, [toggleFileSelected, unselectAll, sortedFiles]);
 
-  const openFileHandler = async (fileLink: AnyDescriptor) => {
+  // TODO: Raise this code to parent
+  const openFileHandler = async (fileLink: Descriptor) => {
     unselectAll();
 
     if (fileLink.type === DescriptorType.LocalDirectory) {
-      setOpenedFolderContent(await fileLink.content());
+      // setOpenedFolderContent(await fileLink.content());
     } else {
       return; // TODO: Handle file open
     }
@@ -115,16 +116,15 @@ export const FileList = ({files, selectedFiles, toggleFileSelected, onGoBack, un
 
 
 const Wrapper = styled.div`
+  position: relative;
   display: flex;
   flex-wrap: wrap;
   flex-direction: row;
 
   gap: 1rem;
-  padding: 1rem;
   user-select: none;
 
   width: 100%;
   height: 100%;
   align-content: flex-start;
-
 `;

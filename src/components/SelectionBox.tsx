@@ -8,16 +8,19 @@ type SelectionBoxProps = {
   onIntersection: (target: Element[]) => void
 };
 
+type SelectionType = {x: number, y: number, enabled: boolean, rect: DOMRect | null}
+
 export const SelectionBox = memo(({wrapper, onIntersection}: SelectionBoxProps) => {
-  const selection = useRef({x: 0, y: 0, enabled: false});
+  const selection = useRef<SelectionType>({x: 0, y: 0, enabled: false, rect: null});
   const selectionBox = useRef<HTMLDivElement | null>(null);
 
   const startSelect = (e: MouseEvent) => {
-    if (!selectionBox.current)
+    if (!selectionBox.current || selection.current.enabled)
       return;
 
-    selection.current.x = e.clientX - wrapper.clientLeft;
-    selection.current.y = e.clientY - wrapper.clientTop;
+    selection.current.rect = wrapper.getBoundingClientRect();
+    selection.current.x = e.clientX - selection.current.rect.left;
+    selection.current.y = e.clientY - selection.current.rect.top;
     selection.current.enabled = true;
 
     selectionBox.current.style.transform = `translate3D(${selection.current.x}px, ${selection.current.y}px, 0)`;
@@ -27,8 +30,8 @@ export const SelectionBox = memo(({wrapper, onIntersection}: SelectionBoxProps) 
     if (!selection.current.enabled || !selectionBox.current)
       return;
 
-    let width = e.clientX - wrapper.clientLeft - selection.current.x;
-    let height = e.clientY - wrapper.clientTop - selection.current.y;
+    let width = e.clientX - selection.current.rect!.left - selection.current.x;
+    let height = e.clientY - selection.current.rect!.top - selection.current.y;
 
     let top = selection.current.y;
     let left = selection.current.x;
@@ -50,7 +53,7 @@ export const SelectionBox = memo(({wrapper, onIntersection}: SelectionBoxProps) 
   };
 
   const endSelect = () => {
-    if (!selectionBox.current)
+    if (!selectionBox.current || !selection.current.enabled)
       return;
 
     selection.current.enabled = false;

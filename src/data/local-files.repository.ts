@@ -2,7 +2,7 @@ import {LocalFileDescriptor} from '@/entities/LocalFileDescriptor';
 import {LocalDirDescriptor} from '@/entities/LocalDirDescriptor';
 import type {LocalDescriptor} from '@/entities/Descriptor';
 
-class FilesRepository {
+class LocalFilesRepository {
 
   public get descriptors(): ReadonlyArray<LocalDescriptor> { return this._descriptors; }
 
@@ -19,4 +19,4 @@ class FilesRepository {
   };
 }
 
-export const fileRepository = new FilesRepository();
+export const fileRepository = new LocalFilesRepository();
