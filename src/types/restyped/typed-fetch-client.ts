@@ -1,4 +1,4 @@
-import type {RestypedIndexedBase} from '@/types/restyped/restyped';
+import type {RestypedBase} from '@/types/restyped/restyped';
 
 type ReadonlyHeaders = Omit<Headers, 'set' | 'delete' | 'append'>;
 const defaultHeaders = new Headers();
@@ -16,7 +16,7 @@ type RequestOptions<TQuery> = RequestInit & {
   searchParams: TQuery | URLSearchParams
 }
 
-export class TypedFetchClient<APIDef extends RestypedIndexedBase> {
+export class TypedFetchClient<APIDef extends RestypedBase> {
   private readonly _headers = defaultHeaders;
   private readonly _baseUrl: string | URL;
 
@@ -73,7 +73,7 @@ export class TypedFetchClient<APIDef extends RestypedIndexedBase> {
   >(method: TMethod, path: TPath | URL, body: APIDef[TPath][TMethod]['body'] | FormData, options?: RequestOptions<TQuery>): Promise<TResponse> {
     const headers = new Headers(this._headers);
 
-    if (body instanceof FormData == false) {
+    if (body && body instanceof FormData == false) {
       headers.set('Content-Type', 'application/json');
     }
 
@@ -114,7 +114,7 @@ export class TypedFetchClient<APIDef extends RestypedIndexedBase> {
           response.text().then(r => {
             resolve(r as TResponse);
           });
-      });
+      }).catch(reject);
     });
   }
 

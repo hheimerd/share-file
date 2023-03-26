@@ -1,5 +1,5 @@
 import type * as express from 'express';
-import type {RestypedBase, RestypedRoute} from 'restyped';
+import type {RestypedBase, RestypedRoute} from './restyped';
 
 export interface TypedRequest<T extends RestypedRoute> extends express.Request {
   body: T['body']

@@ -1,7 +1,6 @@
 import type {RemoteDescriptorDto} from '@/api/dto/remote-descriptor.dto';
-import type {RestypedBase} from '@/types/restyped/restyped';
 
-export interface Api extends RestypedBase {
+export interface Api {
   '/all-files': {
     'GET': {
       response: RemoteDescriptorDto[],
