@@ -1,5 +1,6 @@
-import {fileRepository} from '@/data/files-repository';
+import {fileRepository} from '@/data/local-files.repository';
+import {createRemoteFileDto} from '@/api/dto/remote-descriptor.dto';
 
 export function getAllFiles() {
-  return fileRepository.descriptors;
+  return fileRepository.descriptors.map(createRemoteFileDto);
 }
