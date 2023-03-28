@@ -24,7 +24,8 @@ export const Upload = ({className}: UploadProps) => {
               selectedFiles={descriptorGridVM.selectedFiles}
               descriptors={descriptorGridVM.descriptors}
               onGoBack={descriptorGridVM.onGoBack}
-            />}
+            />
+          }
         </Observer>
       </DragAndDropWrapper>
     </div>

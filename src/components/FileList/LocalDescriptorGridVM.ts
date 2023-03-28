@@ -57,11 +57,11 @@ export class LocalDescriptorGridVM {
       this.setDescriptors([...this.descriptors, ...newFiles]);
   };
 
-  openFile = async (fileLink: LocalDescriptor) => {
+  openFile = async (descriptor: LocalDescriptor) => {
     this.unselectAll();
 
-    if (fileLink.type === DescriptorType.LocalDirectory) {
-      const content = await fileLink.content();
+    if (descriptor.type === DescriptorType.LocalDirectory) {
+      const content = await descriptor.content();
 
       runInAction(() => this._descriptorsStack.push(content));
     } else {

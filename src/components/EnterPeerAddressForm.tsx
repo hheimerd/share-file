@@ -30,7 +30,7 @@ const Wrapper = styled.div`
   flex-direction: row;
   width: fit-content;
   position: relative;
-  height: 72px;
+  min-height: 72px;
 `;
 
 const SubmitButton = styled.button`
