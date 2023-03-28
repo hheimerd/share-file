@@ -1,68 +1,36 @@
-import {useSelectableData} from '@/hooks/useSelectableData';
-import type {Descriptor, LocalDescriptor} from '@/entities/Descriptor';
-import {useEffect, useRef, useState} from 'react';
-import {fileRepository} from '@/data/local-files.repository';
 import {DragAndDropZone} from '@/components/DragAndDropZone';
-import {FileList} from '@/components/FileList';
+import {DescriptorsGridView} from '@/components/FileList/DescriptorsGridView';
 import styled from 'styled-components';
+import {useLocalObservable} from 'mobx-react-lite';
+import {LocalDescriptorGridVM} from '@/components/FileList/LocalDescriptorGridVM';
+import {Observer} from 'mobx-react';
+import type {LocalDescriptor} from '@/entities/Descriptor';
 
 type UploadProps = {
   className?: string
 }
 
-function createFileHash(file: File) {
-  return `${file.path}${file.lastModified}${file.size}`;
-}
 
-export function Upload({className}: UploadProps) {
-  const {selectedData, toggleSelectedData, clearSelectedData} = useSelectableData<Descriptor>();
-  const [localFiles, setLocalFiles] = useState<LocalDescriptor[]>([]);
-  const filesHash = useRef<string[]>([]);
-
-  useEffect(() => {
-    clearSelectedData();
-  }, [localFiles]);
-
-  const handleFilesDrop = async (dataTransfer: DataTransfer) => {
-    const newFiles: LocalDescriptor[] = [];
-
-    for (const item of dataTransfer.items) {
-      const file = item.getAsFile();
-      if (!file) continue;
-
-      const hash = createFileHash(file);
-      if (filesHash.current.includes(hash))
-        continue;
-
-      filesHash.current.push(hash);
-
-      const entry = item.webkitGetAsEntry();
-      if (!entry)
-        continue;
-
-      const path = file?.path ?? entry.fullPath;
-
-      newFiles.push(await fileRepository.createDescriptor(entry, path));
-    }
-
-    if (newFiles.length)
-      setLocalFiles(files => [...files, ...newFiles]);
-  };
+export const Upload = ({className}: UploadProps) => {
+  const descriptorGridVM = useLocalObservable(() => new LocalDescriptorGridVM());
 
   return (
-    <Wrapper className={className}>
-      <DragAndDropZone onFilesDropped={handleFilesDrop}>
-        <FileList
-          files={localFiles}
-          selectedFiles={selectedData}
-          toggleFileSelected={toggleSelectedData}
-          unselectAll={clearSelectedData}
-        />
-      </DragAndDropZone>
-    </Wrapper>
+    <div className={className}>
+      <DragAndDropWrapper onFilesDropped={descriptorGridVM.addDescriptorsFromInput}>
+        <Observer>
+          {() =>
+            <DescriptorsGridView<LocalDescriptor>
+              {...descriptorGridVM}
+              selectedFiles={descriptorGridVM.selectedFiles}
+              descriptors={descriptorGridVM.descriptors}
+              onGoBack={descriptorGridVM.onGoBack}
+            />}
+        </Observer>
+      </DragAndDropWrapper>
+    </div>
   );
-}
+};
 
-const Wrapper = styled.div`
+const DragAndDropWrapper = styled(DragAndDropZone)`
   padding: 1rem;
 `;

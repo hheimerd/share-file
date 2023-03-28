@@ -5,7 +5,8 @@ import styled from 'styled-components';
 
 type DragAndDropZoneProps = {
   onFilesDropped?: (dataTransfer: DataTransfer) => void,
-  children?: ReactNode
+  children?: ReactNode,
+  className?: string,
 }
 
 function preventAndRun(action?: Action<DragEvent>) {
@@ -15,7 +16,7 @@ function preventAndRun(action?: Action<DragEvent>) {
   };
 }
 
-export const DragAndDropZone = ({children, onFilesDropped}: DragAndDropZoneProps) => {
+export const DragAndDropZone = ({className, children, onFilesDropped}: DragAndDropZoneProps) => {
   const [dropHereVisible, setDropHereVisible] = useState(false);
   const [isInnerDnD, setIsInnerDnD] = useState(false);
 
@@ -34,6 +35,7 @@ export const DragAndDropZone = ({children, onFilesDropped}: DragAndDropZoneProps
 
   return (
     <Wrapper
+      className={className}
       onDragLeave={preventAndRun(handleDragEnd)}
       onDrop={preventAndRun(handleDrop)}
       onDragOver={preventAndRun(handleDragStart)}
@@ -62,6 +64,8 @@ const DropHereBanner = styled.div<{ show: boolean }>`
   position: absolute;
   width: 100%;
   height: 100%;
+  top: 0;
+  left: 0;
   display: flex;
 
   align-items: center;

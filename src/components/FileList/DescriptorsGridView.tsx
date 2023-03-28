@@ -1,36 +1,45 @@
-import {FileLink as FileLinkEl} from './FileLink';
+import {DescriptorView as FileLinkEl} from './DescriptorView';
 import styled from 'styled-components';
 import type {Action} from '@/types/Action';
 import {useCallback, useEffect, useRef, useState} from 'react';
 import {SelectionBox} from '@/components/SelectionBox';
 import {keyboardManager} from '@/utils/keyboard-manager';
 import type {Descriptor} from '@/entities/Descriptor';
-import {BackDescriptor, DescriptorType} from '@/entities/Descriptor';
+import {BackDescriptor} from '@/entities/Descriptor';
 
-type FileListProps = {
-  files: Descriptor[],
-  toggleFileSelected: (file: Descriptor, selected?: boolean) => void,
+type FileListProps<TDescriptor extends Descriptor> = {
+  descriptors: TDescriptor[],
+  toggleFileSelected: (file: TDescriptor, selected?: boolean) => void,
   unselectAll: Action,
-  selectedFiles: Descriptor[],
-  onGoBack?: () => void
+  selectedFiles: TDescriptor[],
+  onGoBack?: () => void,
+  openFile?: (descriptor: TDescriptor) => void
 };
 
 const dataKeyAttribute = 'data-key';
 
-export const FileList = ({files, selectedFiles, toggleFileSelected, onGoBack, unselectAll}: FileListProps) => {
+export const DescriptorsGridView = <TDescriptor extends Descriptor>({
+  descriptors,
+  openFile,
+  selectedFiles,
+  toggleFileSelected,
+  onGoBack,
+  unselectAll,
+}: FileListProps<TDescriptor>) => {
+  
   const [filesWrapper, setFilesWrapper] = useState<HTMLDivElement | null>(null);
   const wrapperRef = useRef<HTMLDivElement | null>(null);
-  const [dragEl, setDragEl] = useState<Descriptor | null>(null);
-  const [openedFolderContent, setOpenedFolderContent] = useState<Descriptor[]>([]);
+  const [dragEl, setDragEl] = useState<TDescriptor | null>(null);
+  const [openedFolderContent, setOpenedFolderContent] = useState<TDescriptor[]>([]);
   const [backSelected, setBackSelected] = useState(false);
-  const sortedFiles = files.sort((a, b) => a.type - b.type);
+  const sortedFiles = descriptors.sort((a, b) => a.type - b.type);
 
   const handleBoxSelection = useCallback((selectedList: Element[]) => {
     setBackSelected(false);
 
     const newSelectedFiles = selectedList
       .map(el => sortedFiles.find(file => file.id == el.getAttribute(dataKeyAttribute)))
-      .filter(x => x) as Descriptor[];
+      .filter(x => x) as TDescriptor[];
 
     if (!keyboardManager.ctrlCmd && !keyboardManager.shift)
       unselectAll();
@@ -45,25 +54,14 @@ export const FileList = ({files, selectedFiles, toggleFileSelected, onGoBack, un
     }
   }, [toggleFileSelected, unselectAll, sortedFiles]);
 
-  // TODO: Raise this code to parent
-  const openFileHandler = async (fileLink: Descriptor) => {
-    unselectAll();
-
-    if (fileLink.type === DescriptorType.LocalDirectory) {
-      // setOpenedFolderContent(await fileLink.content());
-    } else {
-      return; // TODO: Handle file open
-    }
-  };
-
   useEffect(() => {
     setFilesWrapper(wrapperRef.current); // wrapperRef.current is null after go to the back directory
   }, [openedFolderContent]);
 
   return (
     openedFolderContent.length > 0
-      ? <FileList
-        files={openedFolderContent} selectedFiles={selectedFiles} onGoBack={() => setOpenedFolderContent([])}
+      ? <DescriptorsGridView
+        descriptors={openedFolderContent} selectedFiles={selectedFiles} onGoBack={() => setOpenedFolderContent([])}
         unselectAll={unselectAll} toggleFileSelected={toggleFileSelected}
       />
       : <Wrapper ref={wrapperRef}>
@@ -82,27 +80,27 @@ export const FileList = ({files, selectedFiles, toggleFileSelected, onGoBack, un
         }
 
         {/* Other files*/}
-        {sortedFiles.map(fileLink => {
-          const key = fileLink.id;
-          const selected = selectedFiles.includes(fileLink);
-          const dragging = dragEl == fileLink;
+        {sortedFiles.map(descriptor => {
+          const key = descriptor.id;
+          const selected = selectedFiles.includes(descriptor);
+          const dragging = dragEl == descriptor;
 
           const handleFileDragStart = () => {
-            setDragEl(fileLink);
+            setDragEl(descriptor);
             if (!selected)
               unselectAll();
 
-            toggleFileSelected(fileLink, true);
+            toggleFileSelected(descriptor, true);
           };
 
           return (
             <FileLinkEl
-              descriptor={fileLink} selected={selected}
+              descriptor={descriptor} selected={selected}
               key={key} className="selectable" data-key={key}
               onDragStart={handleFileDragStart}
               onDragEnd={() => setDragEl(null)}
               dragFilesCount={dragging ? selectedFiles.length : 0}
-              onDoubleClickCapture={() => openFileHandler(fileLink)}
+              onDoubleClickCapture={() => openFile?.(descriptor)}
             />
           );
         })}

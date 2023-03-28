@@ -3,7 +3,7 @@ import {useEffect, useState} from 'react';
 import {EnterPeerAddressForm} from '@/components/EnterPeerAddressForm';
 import {isValidUrl} from '@/utils/is-valid-url';
 import {RemoteFilesRepository} from '@/data/remote-files.repository';
-import {FileList} from '@/components/FileList';
+import {DescriptorsGridView} from '@/components/FileList/DescriptorsGridView';
 import type {RemoteDescriptorDto} from '@/api/dto/remote-descriptor.dto';
 import {useSelectableData} from '@/hooks/useSelectableData';
 import type {Descriptor} from '@/entities/Descriptor';
@@ -21,14 +21,13 @@ export function Download({className}: DownloadProps) {
   const {selectedData, toggleSelectedData, clearSelectedData} = useSelectableData<Descriptor>();
 
   useEffect(() => {
-    repository?.getFiles().then((value) => {
-      console.log(value);
-      setFiles(value);
-    }).catch(e => {
-      console.error(e);
-      setErrorMessage('URL is not accessible');
-      setRepository(null);
-    });
+    repository?.getFiles()
+      .then((value) => setFiles(value))
+      .catch(e => {
+        console.error(e);
+        setErrorMessage('URL is not accessible');
+        setRepository(null);
+      });
   }, [repository]);
 
   const fetchPeerFiles = (address: string) => {
@@ -52,8 +51,8 @@ export function Download({className}: DownloadProps) {
     <Wrapper className={className}>
       <AddressForm onSubmit={fetchPeerFiles} error={errorMessage}/>
       {repository &&
-        <FileList
-          files={files}
+        <DescriptorsGridView
+          descriptors={files}
           selectedFiles={selectedData}
           toggleFileSelected={toggleSelectedData}
           unselectAll={clearSelectedData}

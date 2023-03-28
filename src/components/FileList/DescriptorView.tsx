@@ -1,9 +1,10 @@
 import folderIcon from '@/assets/icons/folder.svg';
 import {getIcon} from 'material-file-icons';
 import styled, {css} from 'styled-components';
-import type {HTMLAttributes} from 'react';
+import type {HTMLAttributes, MouseEvent as ReactMouseEvent} from 'react';
 import type {BackDescriptor, Descriptor} from '@/entities/Descriptor';
 import {isDir} from '@/entities/Descriptor';
+import {useRef} from 'react';
 
 type FileLinkProps = {
   descriptor: Descriptor | BackDescriptor,
@@ -11,12 +12,27 @@ type FileLinkProps = {
   dragFilesCount?: number
 } & HTMLAttributes<HTMLDivElement>
 
-export function FileLink({descriptor, selected, dragFilesCount = 0, ...divProps}: FileLinkProps) {
+const DOUBLE_CLICK_DELAY = 400;
+
+export function DescriptorView({descriptor, selected, dragFilesCount = 0, onDoubleClickCapture, ...divProps}: FileLinkProps) {
+  const prevClick = useRef(false);
+
+  // Default double click doesn't work when click many times in a row
+  const doubleClick = (e: ReactMouseEvent<HTMLDivElement, MouseEvent>) => {
+    if (prevClick.current == false) {
+      prevClick.current = true;
+      setTimeout(() => prevClick.current = false, DOUBLE_CLICK_DELAY);
+    } else {
+      onDoubleClickCapture?.(e);
+    }
+  };
+
   return (
 
     <FileLinkEl draggable={true}
       {...divProps}
       selected={selected}
+      onClickCapture={doubleClick}
     >
       <IconWrapper>
         {isDir(descriptor)
