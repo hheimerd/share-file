@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-var-requires*/
 import type {Express} from 'express';
-import {getAllFiles} from '@/api/endpoints/all-files';
+import {getAllFiles, getDirContent} from '@/api/endpoints/descriptors';
 import AsyncRouter from '@/types/restyped/typed-express';
 import type {Api} from '@/api/api-declaration';
 
@@ -16,6 +16,10 @@ export function start() {
 
   router.get('/all-files', async () => {
     return getAllFiles();
+  });
+
+  router.get('/dir-content/:id', async (req) => {
+    return await getDirContent(req.params.id);
   });
 
   expressApp.listen(3001, '0.0.0.0', console.log);

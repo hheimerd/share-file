@@ -11,4 +11,12 @@ export class RemoteDescriptorsRepository {
   getFiles() {
     return this._api.get('/all-files');
   }
+
+  async getDirContent(id: string) {
+    return this._api.get('/dir-content/:id', {
+      params: {
+        id
+      }
+    });
+  }
 }

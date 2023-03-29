@@ -1,13 +1,13 @@
-import {makeAutoObservable} from 'mobx';
+import {makeAutoObservable, runInAction} from 'mobx';
 import {SelectableData} from '@/utils/selectable-data';
 import type {RemoteDescriptorsRepository} from '@/data/remote-descriptors.repository';
 import type {Descriptor} from '@/entities/Descriptor';
+import {isDir} from '@/entities/Descriptor';
 
 export class RemoteDescriptorVM {
   public get descriptors() { return this._descriptorsStack[this._descriptorsStack.length - 1]; }
 
   private _descriptorsStack: Descriptor[][] = [[]];
-  private _filesHash: string[] = [];
   private readonly selectableDescriptors = new SelectableData<Descriptor>();
   private _descriptorRepository: RemoteDescriptorsRepository;
 
@@ -35,7 +35,19 @@ export class RemoteDescriptorVM {
 
   public openFile = async (descriptor: Descriptor) => {
     this.unselectAll();
+
+    if (isDir(descriptor)) {
+      await this.openRemoteDir(descriptor);
+    }
   };
+
+  private async openRemoteDir(descriptor: Descriptor) {
+    const content = await this._descriptorRepository.getDirContent(descriptor.id);
+
+    runInAction(() => {
+      this._descriptorsStack.push(content);
+    });
+  }
 
   public goBack = () => {
     this._descriptorsStack.pop();
