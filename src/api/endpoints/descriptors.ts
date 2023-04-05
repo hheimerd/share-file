@@ -14,3 +14,11 @@ export async function getDirContent(id: string) {
   return (await descriptor.content()).map(createRemoteFileDto);
 }
 
+export async function getFile(id: string) {
+  const descriptor = fileRepository.descriptors.find(x => x.id === id);
+  if (!descriptor || isDir(descriptor))
+    return null;
+
+  return await descriptor.file();
+}
+

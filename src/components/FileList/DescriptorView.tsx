@@ -28,7 +28,6 @@ export function DescriptorView({descriptor, selected, dragFilesCount = 0, onDoub
   };
 
   return (
-
     <FileLinkEl draggable={true}
       {...divProps}
       selected={selected}

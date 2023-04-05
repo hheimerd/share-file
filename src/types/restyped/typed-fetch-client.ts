@@ -15,6 +15,11 @@ type HTTPMethod =
 
 type RequestOptions<TRoute extends RestypedRoute> = RequestInit
   & (
+  TRoute['response'] extends Blob
+    ? { responseIsFile: true }
+    : { responseIsFile?: boolean }
+  )
+  & (
   IsObject<TRoute['params']> extends true
     ? { params: TRoute['params'] }
     : { params?: undefined }
@@ -121,14 +126,21 @@ export class TypedFetchClient<APIDef extends RestypedBase> {
           return;
         }
 
-        if (response.headers.get('Content-Type')?.includes('application/json'))
+        const contentType = response.headers.get('Content-Type');
+
+        if (options?.responseIsFile) {
+          response.blob().then(r => {
+            resolve(r as TResponse);
+          });
+        } else if (contentType?.includes('application/json')) {
           response.json().then(r => {
             resolve(r as TResponse);
           });
-        else
+        } else {
           response.text().then(r => {
             resolve(r as TResponse);
           });
+        }
       }).catch(reject);
     });
   }

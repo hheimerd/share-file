@@ -14,4 +14,12 @@ export interface Api {
       }
     }
   },
+  '/file/:id': {
+    GET: {
+      response: Blob,
+      params: {
+        id: string
+      }
+    }
+  }
 }

@@ -3,8 +3,9 @@ import type {LocalDescriptor} from '@/entities/Descriptor';
 import {DescriptorType} from '@/entities/Descriptor';
 import {fileRepository} from '@/data/local-files.repository';
 import {SelectableData} from '@/utils/selectable-data';
+import type {FileWithPath} from '@/types/file-with-path';
 
-function createFileHash(file: File) {
+function createFileHash(file: FileWithPath) {
   return `${file.path}${file.lastModified}${file.size}`;
 }
 
@@ -35,7 +36,7 @@ export class LocalDescriptorGridVM {
     const newFiles: LocalDescriptor[] = [];
 
     for (const item of dataTransfer.items) {
-      const file = item.getAsFile();
+      const file = item.getAsFile() as FileWithPath | undefined;
       if (!file) continue;
 
       const hash = createFileHash(file);

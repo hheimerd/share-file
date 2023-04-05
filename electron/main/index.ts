@@ -1,6 +1,7 @@
-import {app, BrowserWindow, shell, ipcMain} from 'electron';
+import {app, BrowserWindow, shell, ipcMain, dialog} from 'electron';
 import {join} from 'node:path';
-import {IpcMessage} from './ipc-message';
+import {IpcRendererMessage} from './ipc-renderer-message';
+import {IpcMainMessage} from './ipc-main-message';
 
 // The built directory structure
 //
@@ -72,13 +73,14 @@ async function createWindow() {
 
 app.whenReady().then(async () => {
   await createWindow();
-  ipcMain.on(IpcMessage.GetFileIcon, async (e, path: string) => {
-    const icon = await app.getFileIcon(path, {
-      size: 'large'
+  ipcMain.on(IpcRendererMessage.OpenDirSelector, async () => {
+    const {filePaths, canceled} = await dialog.showOpenDialog({
+      properties: ['openDirectory'],
+      title: 'Save file to',
+      buttonLabel: 'Save'
     });
 
-    // TODO: remake with custom icons
-    win?.webContents.send(IpcMessage.GetFileIcon + path, `${icon.toDataURL()}`);
+    win?.webContents.send(IpcMainMessage.DirSelected, canceled ? null : filePaths[0]);
   });
 });
 
