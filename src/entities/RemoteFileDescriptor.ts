@@ -15,4 +15,8 @@ export class RemoteFileDescriptor extends Descriptor {
   public file(): Promise<Blob> {
     return this._descriptorRepository.getFile(this.id);
   }
+
+  public stream(): Promise<ReadableStream> {
+    return this._descriptorRepository.getFileStream(this.id);
+  }
 }

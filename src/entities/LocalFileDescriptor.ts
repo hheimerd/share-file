@@ -19,4 +19,9 @@ export class LocalFileDescriptor extends Descriptor {
   public file(): Promise<Blob> {
     return fileFromEntryAsync(this._entry);
   }
+
+  public async stream(): Promise<ReadableStream> {
+    return (await fileFromEntryAsync(this._entry)).stream();
+  }
+
 }

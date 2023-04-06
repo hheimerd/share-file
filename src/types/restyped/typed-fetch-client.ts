@@ -13,11 +13,14 @@ type HTTPMethod =
   | 'DELETE'
   | 'OPTIONS'
 
+
+export enum FileResponseType {Blob,Stream}
+
 type RequestOptions<TRoute extends RestypedRoute> = RequestInit
   & (
   TRoute['response'] extends Blob
-    ? { responseIsFile: true }
-    : { responseIsFile?: boolean }
+    ? { fileResponseType: FileResponseType }
+    : { fileResponseType?: FileResponseType }
   )
   & (
   IsObject<TRoute['params']> extends true
@@ -28,6 +31,13 @@ type RequestOptions<TRoute extends RestypedRoute> = RequestInit
     ? { searchParams: TRoute['query'] | URLSearchParams }
     : { searchParams?: undefined }
   )
+
+type BlobResponseGuard<TRoute extends RestypedRoute, TOptions extends RequestOptions<TRoute>> =
+  TOptions['fileResponseType'] extends FileResponseType.Stream
+  ? ReadableStream
+  : TOptions['fileResponseType'] extends FileResponseType.Blob
+    ? Blob
+    : TRoute['response']
 
 export class TypedFetchClient<APIDef extends RestypedBase> {
   private readonly _headers = defaultHeaders;
@@ -50,7 +60,8 @@ export class TypedFetchClient<APIDef extends RestypedBase> {
   public get<
     TPath extends Extract<keyof APIDef, string>,
     TRoute extends APIDef[TPath]['GET'],
-  >(path: TPath, options?: RequestOptions<TRoute>) {
+    TOptions extends RequestOptions<TRoute>
+  >(path: TPath, options?: TOptions):Promise<BlobResponseGuard<TRoute, TOptions>>  {
     return this.request('GET', path, undefined, options);
   }
 
@@ -81,9 +92,12 @@ export class TypedFetchClient<APIDef extends RestypedBase> {
   public async request<
     TPath extends Extract<keyof APIDef, string>,
     TMethod extends HTTPMethod,
-    TQuery extends APIDef[TPath][TMethod]['query'],
-    TResponse extends APIDef[TPath][TMethod]['response'],
-  >(method: TMethod, path: TPath, body: APIDef[TPath][TMethod]['body'] | FormData, options?: RequestOptions<TQuery>): Promise<TResponse> {
+    TRoute extends APIDef[TPath][TMethod],
+    TQuery extends TRoute['query'],
+    TResponse extends TRoute['response'],
+    TOptions extends RequestOptions<TQuery>,
+  >(method: TMethod, path: TPath, body: TRoute['body'] | FormData, options?: TOptions)
+    : Promise<BlobResponseGuard<TRoute, TOptions>> {
     const headers = new Headers(this._headers);
     let preparedPath = path as string;
 
@@ -114,35 +128,33 @@ export class TypedFetchClient<APIDef extends RestypedBase> {
     }
 
 
-    return new Promise<TResponse>((resolve, reject) => {
-      fetch(url.toString(), {
-        body: body instanceof FormData ? body : JSON.stringify(body),
-        headers: headers,
-        method,
-        ...options,
-      }).then(response => {
-        if (response.status < 200 || response.status >= 300) {
-          reject(response);
-          return;
-        }
-
-        const contentType = response.headers.get('Content-Type');
-
-        if (options?.responseIsFile) {
-          response.blob().then(r => {
-            resolve(r as TResponse);
-          });
-        } else if (contentType?.includes('application/json')) {
-          response.json().then(r => {
-            resolve(r as TResponse);
-          });
-        } else {
-          response.text().then(r => {
-            resolve(r as TResponse);
-          });
-        }
-      }).catch(reject);
+    const response = await fetch(url.toString(), {
+      body: body instanceof FormData ? body : JSON.stringify(body),
+      headers: headers,
+      method,
+      ...options,
     });
+
+    if (response.status < 200 || response.status >= 300)
+      throw response;
+
+    const contentType = response.headers.get('Content-Type');
+
+    if (options?.fileResponseType == FileResponseType.Blob) {
+      return await response.blob() as TResponse;
+    }
+
+    if (options?.fileResponseType == FileResponseType.Stream) {
+      return response.body as TResponse;
+    }
+
+    if (contentType?.includes('application/json')) {
+      return await response.json() as TResponse;
+    }
+
+    return await response.text() as TResponse;
+
+
   }
 
   public setGlobalHeader(key: string, value: string) { this._headers.set(key, value);}

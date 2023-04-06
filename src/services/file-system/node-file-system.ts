@@ -3,7 +3,7 @@ import {mkdir, writeFile} from 'fs/promises';
 import {ipcRenderer} from 'electron';
 import {join} from 'node:path';
 import type {DirDescriptor, FileDescriptor} from '@/entities/Descriptor';
-import { isDir} from '@/entities/Descriptor';
+import {isDir} from '@/entities/Descriptor';
 import {IpcRendererMessage} from '../../../electron/main/ipc-renderer-message';
 import {IpcMainMessage} from '../../../electron/main/ipc-main-message';
 

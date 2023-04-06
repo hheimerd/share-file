@@ -1,4 +1,4 @@
-import {TypedFetchClient} from '@/types/restyped/typed-fetch-client';
+import {FileResponseType, TypedFetchClient} from '@/types/restyped/typed-fetch-client';
 import type {Api} from '@/api/api-declaration';
 import {isDir} from '@/entities/Descriptor';
 import {RemoteDirDescriptor} from '@/entities/RemoteDirDescriptor';
@@ -19,14 +19,14 @@ export class RemoteDescriptorsRepository {
   async getDirContent(id: string) {
     const dtos = await this._api.get('/dir-content/:id', {
       params: {
-        id
-      }
+        id,
+      },
     });
     return dtos.map(this.toEntity);
   }
-  
+
   private toEntity = (dto: RemoteDescriptorDto) => {
-    return isDir(dto) 
+    return isDir(dto)
       ? new RemoteDirDescriptor(dto, this)
       : new RemoteFileDescriptor(dto, this);
   };
@@ -34,9 +34,19 @@ export class RemoteDescriptorsRepository {
   async getFile(id: string): Promise<Blob> {
     return this._api.get('/file/:id', {
       params: {
-        id
+        id,
       },
-      responseIsFile: true
+      fileResponseType: FileResponseType.Blob,
     });
+  }
+
+  async getFileStream(id: string): Promise<ReadableStream> {
+    return this._api.get('/file/:id',
+      {
+        params: {
+          id,
+        },
+        fileResponseType: FileResponseType.Stream,
+      });
   }
 }
