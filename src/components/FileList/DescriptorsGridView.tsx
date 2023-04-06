@@ -6,6 +6,8 @@ import {SelectionBox} from '@/components/SelectionBox';
 import {keyboardManager} from '@/utils/keyboard-manager';
 import type {Descriptor} from '@/entities/Descriptor';
 import {BackDescriptor} from '@/entities/Descriptor';
+import {ContextMenu} from '@/components/FileList/ContextMenu';
+
 
 type FileListProps<TDescriptor extends Descriptor> = {
   descriptors: TDescriptor[],
@@ -13,7 +15,7 @@ type FileListProps<TDescriptor extends Descriptor> = {
   unselectAll: Action,
   selectedFiles: TDescriptor[],
   onGoBack?: () => void,
-  openFile?: (descriptor: TDescriptor) => void
+  openFile?: (descriptor: TDescriptor) => void,
 };
 
 const dataKeyAttribute = 'data-key';
@@ -26,13 +28,14 @@ export const DescriptorsGridView = <TDescriptor extends Descriptor>({
   onGoBack,
   unselectAll,
 }: FileListProps<TDescriptor>) => {
-  
+
   const [filesWrapper, setFilesWrapper] = useState<HTMLDivElement | null>(null);
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const [dragEl, setDragEl] = useState<TDescriptor | null>(null);
   const [openedFolderContent, setOpenedFolderContent] = useState<TDescriptor[]>([]);
   const [backSelected, setBackSelected] = useState(false);
   const sortedFiles = descriptors.sort((a, b) => a.type - b.type);
+  const [contextMenuPosition, setContextMenuPosition] = useState<{ x: number, y: number } | null>(null);
 
   const handleBoxSelection = useCallback((selectedList: Element[]) => {
     setBackSelected(false);
@@ -58,6 +61,20 @@ export const DescriptorsGridView = <TDescriptor extends Descriptor>({
     setFilesWrapper(wrapperRef.current); // wrapperRef.current is null after go to the back directory
   }, [openedFolderContent]);
 
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setContextMenuPosition({x: e.clientX, y: e.clientY});
+    };
+
+    wrapperRef.current?.addEventListener('contextmenu', handler);
+    return () => {
+      wrapperRef.current?.removeEventListener('contextmenu', handler);
+    };
+  }, [wrapperRef]);
+
+
   return (
     openedFolderContent.length > 0
       ? <DescriptorsGridView
@@ -65,6 +82,17 @@ export const DescriptorsGridView = <TDescriptor extends Descriptor>({
         unselectAll={unselectAll} toggleFileSelected={toggleFileSelected}
       />
       : <Wrapper ref={wrapperRef}>
+
+        {contextMenuPosition &&
+          <ContextMenu items={[
+            {title: 'Open', onClick: () => void(0)},
+            {title: 'Download', onClick: () => void(0)},
+            {title: 'Delete', onClick: () => void(0)},
+          ]} 
+          position={contextMenuPosition}
+          onDismiss={() => setContextMenuPosition(null)}
+          />
+        }
 
         {/* Go back folder (...)*/}
         {onGoBack &&
