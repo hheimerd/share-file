@@ -47,6 +47,7 @@ export const SelectionBox = memo(({wrapper, onIntersection}: SelectionBoxProps) 
       top -= height;
     }
 
+    selectionBox.current.style.visibility = 'visible';
     selectionBox.current.style.transform = `translate3D(${left}px, ${top}px, 0)`;
     selectionBox.current.style.width = `${width}px`;
     selectionBox.current.style.height = `${height}px`;
@@ -71,8 +72,7 @@ export const SelectionBox = memo(({wrapper, onIntersection}: SelectionBoxProps) 
         && box.left < selectorBox.right;
     }));
 
-    selectionBox.current.style.width = '0';
-    selectionBox.current.style.height = '0';
+    selectionBox.current.style.visibility = 'hidden';
   };
 
   useEffect(() => {
@@ -94,7 +94,9 @@ export const SelectionBox = memo(({wrapper, onIntersection}: SelectionBoxProps) 
 SelectionBox.displayName = 'SelectionBox';
 
 const SelectionBoxEl = styled.div`
+  visibility: hidden;
   background: rgba(114, 114, 255, 0.71);
+  border: 1px solid rgb(114, 114, 255);
   position: absolute;
   top: 0;
   left: 0;

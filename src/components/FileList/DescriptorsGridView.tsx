@@ -20,14 +20,15 @@ type FileListProps<TDescriptor extends Descriptor> = {
 
 const dataKeyAttribute = 'data-key';
 
-export const DescriptorsGridView = <TDescriptor extends Descriptor>({
-  descriptors,
-  openFile,
-  selectedFiles,
-  toggleFileSelected,
-  onGoBack,
-  unselectAll,
-}: FileListProps<TDescriptor>) => {
+export const DescriptorsGridView = <TDescriptor extends Descriptor>(
+  {
+    descriptors,
+    openFile,
+    selectedFiles,
+    toggleFileSelected,
+    onGoBack,
+    unselectAll,
+  }: FileListProps<TDescriptor>) => {
 
   const [filesWrapper, setFilesWrapper] = useState<HTMLDivElement | null>(null);
   const wrapperRef = useRef<HTMLDivElement | null>(null);
@@ -84,13 +85,14 @@ export const DescriptorsGridView = <TDescriptor extends Descriptor>({
       : <Wrapper ref={wrapperRef}>
 
         {contextMenuPosition &&
-          <ContextMenu items={[
-            {title: 'Open', onClick: () => void(0)},
-            {title: 'Download', onClick: () => void(0)},
-            {title: 'Delete', onClick: () => void(0)},
-          ]} 
-          position={contextMenuPosition}
-          onDismiss={() => setContextMenuPosition(null)}
+          <ContextMenu
+            items={[
+              {title: 'Open', onClick: () => void (0)},
+              {title: 'Download', onClick: () => void (0)},
+              {title: 'Delete', onClick: () => void (0)},
+            ]}
+            position={contextMenuPosition}
+            onDismiss={() => setContextMenuPosition(null)}
           />
         }
 
