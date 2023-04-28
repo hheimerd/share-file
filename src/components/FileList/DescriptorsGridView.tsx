@@ -16,6 +16,7 @@ type FileListProps<TDescriptor extends Descriptor> = {
   selectedFiles: TDescriptor[],
   onGoBack?: () => void,
   openFile?: (descriptor: TDescriptor) => void,
+  className?: string,
 };
 
 const dataKeyAttribute = 'data-key';
@@ -28,6 +29,7 @@ export const DescriptorsGridView = <TDescriptor extends Descriptor>(
     toggleFileSelected,
     onGoBack,
     unselectAll,
+    className,
   }: FileListProps<TDescriptor>) => {
 
   const [filesWrapper, setFilesWrapper] = useState<HTMLDivElement | null>(null);
@@ -75,14 +77,13 @@ export const DescriptorsGridView = <TDescriptor extends Descriptor>(
     };
   }, [wrapperRef]);
 
-
   return (
     openedFolderContent.length > 0
       ? <DescriptorsGridView
         descriptors={openedFolderContent} selectedFiles={selectedFiles} onGoBack={() => setOpenedFolderContent([])}
         unselectAll={unselectAll} toggleFileSelected={toggleFileSelected}
       />
-      : <Wrapper ref={wrapperRef}>
+      : <Wrapper ref={wrapperRef} className={className}>
 
         {contextMenuPosition &&
           <ContextMenu
@@ -125,10 +126,11 @@ export const DescriptorsGridView = <TDescriptor extends Descriptor>(
 
           return (
             <FileLinkEl
-              descriptor={descriptor} selected={selected}
+              descriptor={descriptor} draggable={true} selected={selected}
               key={key} className="selectable" data-key={key}
               onDragStart={handleFileDragStart}
               onDragEnd={() => setDragEl(null)}
+              onPointerDownCapture={e => e.stopPropagation()}
               dragFilesCount={dragging ? selectedFiles.length : 0}
               onDoubleClickCapture={() => openFile?.(descriptor)}
             />

@@ -2,22 +2,24 @@ import styled from 'styled-components';
 import {useEffect} from 'react';
 import {useRef} from 'react';
 import {memo} from 'react';
+import {clamp} from '@/utils/clamp';
 
 type SelectionBoxProps = {
   wrapper: HTMLDivElement,
   onIntersection: (target: Element[]) => void
 };
 
-type SelectionType = {x: number, y: number, enabled: boolean, rect: DOMRect | null}
+type SelectionType = { x: number, y: number, enabled: boolean, rect: DOMRect | null }
 
 export const SelectionBox = memo(({wrapper, onIntersection}: SelectionBoxProps) => {
   const selection = useRef<SelectionType>({x: 0, y: 0, enabled: false, rect: null});
   const selectionBox = useRef<HTMLDivElement | null>(null);
 
-  const startSelect = (e: MouseEvent) => {
+  const startSelect = (e: PointerEvent) => {
     if (!selectionBox.current || selection.current.enabled)
       return;
 
+    selectionBox.current.setPointerCapture(e.pointerId);
     selection.current.rect = wrapper.getBoundingClientRect();
     selection.current.x = e.clientX - selection.current.rect.left;
     selection.current.y = e.clientY - selection.current.rect.top;
@@ -26,15 +28,17 @@ export const SelectionBox = memo(({wrapper, onIntersection}: SelectionBoxProps) 
     selectionBox.current.style.transform = `translate3D(${selection.current.x}px, ${selection.current.y}px, 0)`;
   };
 
-  const moveSelection = (e: MouseEvent) => {
+  const moveSelection = (e: PointerEvent) => {
     if (!selection.current.enabled || !selectionBox.current)
       return;
 
-    let width = e.clientX - selection.current.rect!.left - selection.current.x;
-    let height = e.clientY - selection.current.rect!.top - selection.current.y;
+    const wrapperRect = selection.current.rect!;
 
     let top = selection.current.y;
     let left = selection.current.x;
+
+    let width = clamp(wrapperRect.left, wrapperRect.right, e.clientX) - wrapperRect.left - selection.current.x;
+    let height = clamp(wrapperRect.top, wrapperRect.bottom, e.clientY) - wrapperRect.top - selection.current.y;
 
     // Handle inverted selection
     if (width < 0) {

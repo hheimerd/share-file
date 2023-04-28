@@ -104,4 +104,12 @@ const PlusNDrag = styled.div`
   width: 1.5rem;
   border-radius: 2px;
   color: black;
+
+  @keyframes hide {
+    from {opacity: 1;}
+    to {opacity: 0;}
+  }
+  
+  animation: hide 0.001s forwards;
+
 `;

@@ -16,10 +16,10 @@ export const Upload = ({className}: UploadProps) => {
 
   return (
     <div className={className}>
-      <DragAndDropWrapper onFilesDropped={descriptorGridVM.addDescriptorsFromInput}>
+      <DragAndDropZone onFilesDropped={descriptorGridVM.addDescriptorsFromInput}>
         <Observer>
           {() =>
-            <DescriptorsGridView<LocalDescriptor>
+            <DescriptorsView
               {...descriptorGridVM}
               selectedFiles={descriptorGridVM.selectedFiles}
               descriptors={descriptorGridVM.descriptors}
@@ -27,11 +27,11 @@ export const Upload = ({className}: UploadProps) => {
             />
           }
         </Observer>
-      </DragAndDropWrapper>
+      </DragAndDropZone>
     </div>
   );
 };
 
-const DragAndDropWrapper = styled(DragAndDropZone)`
+const DescriptorsView = styled(DescriptorsGridView<LocalDescriptor>)`
   padding: 1rem;
 `;

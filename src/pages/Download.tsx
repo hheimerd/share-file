@@ -4,7 +4,7 @@ import {EnterPeerAddressForm} from '@/components/EnterPeerAddressForm';
 import {isValidUrl} from '@/utils/is-valid-url';
 import {RemoteDescriptorsRepository} from '@/data/remote-descriptors.repository';
 import {DescriptorsGridView} from '@/components/FileList/DescriptorsGridView';
-import type {Descriptor} from '@/entities/Descriptor';
+import type {RemoteDescriptor} from '@/entities/Descriptor';
 import {RemoteDescriptorVM} from '@/components/FileList/RemoteDescriptorVM';
 import {Observer} from 'mobx-react';
 
@@ -57,7 +57,7 @@ export function Download({className}: DownloadProps) {
       <AddressForm onSubmit={fetchPeerFiles} error={errorMessage}/>
       {repository && descriptorGridVM &&
         <Observer>{() =>
-          <DescriptorsGridView<Descriptor>
+          <DescriptorsGridView<RemoteDescriptor>
             {...descriptorGridVM}
             selectedFiles={descriptorGridVM.selectedFiles}
             descriptors={descriptorGridVM.descriptors}
