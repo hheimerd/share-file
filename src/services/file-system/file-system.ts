@@ -12,4 +12,6 @@ export abstract class FileSystem {
   abstract saveFile(descriptor: FileDescriptor, filePath: string): Promise<boolean>;
 
   abstract saveDirectory(descriptor: DirDescriptor, dirPath: string): Promise<boolean>;
+
+  abstract startDrag(descriptor: AnyDescriptor): Promise<void>;
 }

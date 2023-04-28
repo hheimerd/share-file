@@ -58,6 +58,7 @@ export function Download({className}: DownloadProps) {
       {repository && descriptorGridVM &&
         <Observer>{() =>
           <DescriptorsGridView<RemoteDescriptor>
+            onFileDrag={descriptorGridVM?.startDrag}
             {...descriptorGridVM}
             selectedFiles={descriptorGridVM.selectedFiles}
             descriptors={descriptorGridVM.descriptors}

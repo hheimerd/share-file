@@ -1,7 +1,12 @@
-import {app, BrowserWindow, shell, ipcMain, dialog} from 'electron';
+import {app, BrowserWindow, shell, ipcMain, dialog, type WebContents} from 'electron';
 import {join} from 'node:path';
 import {IpcRendererMessage} from './ipc-renderer-message';
 import {IpcMainMessage} from './ipc-main-message';
+import fs from 'fs/promises';
+import {Action, FileWatcher} from './file-watcher';
+import type {Subscription} from 'rxjs';
+import {v4 as uuid} from 'uuid';
+import {sleep} from './sleep';
 
 // The built directory structure
 //
@@ -52,7 +57,7 @@ async function createWindow() {
       nodeIntegration: true,
       contextIsolation: false,
       experimentalFeatures: true,
-      v8CacheOptions: 'bypassHeatCheckAndEagerCompile'
+      v8CacheOptions: 'bypassHeatCheckAndEagerCompile',
     },
   });
 
@@ -77,12 +82,62 @@ app.whenReady().then(async () => {
     const {filePaths, canceled} = await dialog.showOpenDialog({
       properties: ['openDirectory'],
       title: 'Save file to',
-      buttonLabel: 'Save'
+      buttonLabel: 'Save',
     });
 
     win?.webContents.send(IpcMainMessage.DirSelected, canceled ? null : filePaths[0]);
   });
+
+  ipcMain.on(IpcRendererMessage.StartFileDrag, async (e) => {
+
+    const path = await dropFile(e.sender);
+
+    win?.webContents.send(IpcMainMessage.FileDropped, path);
+  });
 });
+
+
+async function dropFile(webContents: WebContents): Promise<string | undefined> {
+  const uuidExt = uuid().slice(0, 8);
+  const watcher = new FileWatcher(`*.${uuidExt}`);
+  watcher.start();
+
+  const tempFileName = `.temp.${uuidExt}`;
+  const tempFilePath = join(app.getAppPath(), tempFileName);
+  await fs.writeFile(tempFilePath, '');
+
+  let sub: Subscription;
+
+  const receivedPath = new Promise<string>((resolve) => {
+    sub = watcher.fileChange.subscribe(e => {
+      if (e.action == Action.Changed) {
+        resolve(e.path);
+      }
+    });
+  });
+
+  await sleep(200);
+
+  webContents.startDrag({
+    file: tempFilePath,
+    icon: join(__dirname, '..', '..', 'public', 'documents.png'),
+  });
+
+
+  const path = await Promise.race([
+    sleep(2000).then(() => false as const),
+    receivedPath
+  ]);
+
+  sub?.unsubscribe();
+  watcher.dispose();
+
+  if (path)
+    await fs.unlink(path);
+  await fs.unlink(tempFilePath);
+
+  return path ? path.slice(0, path.length - tempFileName.length) : undefined;
+}
 
 app.on('window-all-closed', () => {
   win = null;

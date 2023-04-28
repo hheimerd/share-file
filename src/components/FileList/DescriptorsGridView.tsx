@@ -1,7 +1,8 @@
 import {DescriptorView as FileLinkEl} from './DescriptorView';
 import styled from 'styled-components';
 import type {Action} from '@/types/Action';
-import {useCallback, useEffect, useRef, useState} from 'react';
+import type {DragEvent} from 'react';
+import { useCallback, useEffect, useRef, useState} from 'react';
 import {SelectionBox} from '@/components/SelectionBox';
 import {keyboardManager} from '@/utils/keyboard-manager';
 import type {Descriptor} from '@/entities/Descriptor';
@@ -16,6 +17,7 @@ type FileListProps<TDescriptor extends Descriptor> = {
   selectedFiles: TDescriptor[],
   onGoBack?: () => void,
   openFile?: (descriptor: TDescriptor) => void,
+  onFileDrag?: (descriptor: TDescriptor) => void,
   className?: string,
 };
 
@@ -29,6 +31,7 @@ export const DescriptorsGridView = <TDescriptor extends Descriptor>(
     toggleFileSelected,
     onGoBack,
     unselectAll,
+    onFileDrag,
     className,
   }: FileListProps<TDescriptor>) => {
 
@@ -116,12 +119,17 @@ export const DescriptorsGridView = <TDescriptor extends Descriptor>(
           const selected = selectedFiles.includes(descriptor);
           const dragging = dragEl == descriptor;
 
-          const handleFileDragStart = () => {
+          const handleFileDragStart = (e: DragEvent) => {
+            e.preventDefault();
+            if (!onFileDrag)
+              return;
+
             setDragEl(descriptor);
             if (!selected)
               unselectAll();
 
             toggleFileSelected(descriptor, true);
+            onFileDrag(descriptor);
           };
 
           return (
