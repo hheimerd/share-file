@@ -35,7 +35,7 @@ export class RemoteDescriptorVM {
     this.setDescriptors(descriptors);
   };
 
-  public openFile = async (descriptor: RemoteDirDescriptor) => {
+  public openFile = async (descriptor: RemoteDescriptor) => {
     this.unselectAll();
 
     if (isDir(descriptor)) {
