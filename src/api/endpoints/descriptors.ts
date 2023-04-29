@@ -3,7 +3,7 @@ import {createRemoteFileDto} from '@/api/dto/remote-descriptor.dto';
 import {isDir} from '@/entities/Descriptor';
 
 export function getAllFiles() {
-  return fileRepository.descriptors.map(createRemoteFileDto);
+  return fileRepository.rootDescriptors.map(createRemoteFileDto);
 }
 
 export async function getDirContent(id: string) {

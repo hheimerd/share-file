@@ -51,7 +51,7 @@ export class LocalDescriptorGridVM {
 
       const path = file?.path ?? entry.fullPath;
 
-      newFiles.push(await fileRepository.createDescriptor(entry, path));
+      newFiles.push(await fileRepository.createRootDescriptor(entry, path));
     }
 
     if (newFiles.length)
