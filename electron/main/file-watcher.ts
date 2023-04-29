@@ -23,6 +23,9 @@ type FileChange = {
   newName: string
 }
 
+const appPath = app.getAppPath();
+const resourcesRoot = appPath.endsWith('asar') ? join(appPath, '..') :  join(appPath, 'resources');
+
 export class FileWatcher {
   private readonly _filter: string;
   private _fileChange = new Subject<FileChange>();
@@ -35,7 +38,7 @@ export class FileWatcher {
   }
 
   public start() {
-    const cmd = join(app.getAppPath(), 'resources', 'FileWatcher.exe');
+    const cmd = join(resourcesRoot, 'FileWatcher.exe');
     const child = spawn(cmd, [this._filter]);
     child.stdout.setEncoding('utf8');
 

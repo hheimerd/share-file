@@ -1,7 +1,5 @@
 import {app, BrowserWindow, shell, ipcMain, dialog, type WebContents} from 'electron';
 import {join} from 'node:path';
-import {IpcRendererMessage} from './ipc-renderer-message';
-import {IpcMainMessage} from './ipc-main-message';
 import fs from 'fs/promises';
 import {Action, FileWatcher} from './file-watcher';
 import type {Subscription} from 'rxjs';
@@ -79,24 +77,26 @@ async function createWindow() {
 
 app.whenReady().then(async () => {
   await createWindow();
-  ipcMain.on(IpcRendererMessage.OpenDirSelector, async () => {
+  ipcMain.on('open-dir-selector', async () => {
     const {filePaths, canceled} = await dialog.showOpenDialog({
       properties: ['openDirectory'],
       title: 'Save file to',
       buttonLabel: 'Save',
     });
 
-    win?.webContents.send(IpcMainMessage.DirSelected, canceled ? null : filePaths[0]);
+    win?.webContents.send('dir-selected', canceled ? null : filePaths[0]);
   });
 
-  ipcMain.on(IpcRendererMessage.StartFileDrag, async (e) => {
+  ipcMain.on('start-file-drag', async (e) => {
 
     const path = await dropFile(e.sender);
 
-    win?.webContents.send(IpcMainMessage.FileDropped, path);
+    win?.webContents.send('file-dropped', path);
   });
 });
 
+const appPath = app.getAppPath();
+const resourcesRoot = appPath.endsWith('asar') ? join(appPath, '..') :  join(appPath, 'resources');
 
 async function dropFile(webContents: WebContents): Promise<string | undefined> {
   const uuidExt = uuid().slice(0, 8);
@@ -104,7 +104,7 @@ async function dropFile(webContents: WebContents): Promise<string | undefined> {
   watcher.start();
 
   const tempFileName = `.temp.${uuidExt}`;
-  const tempFilePath = join(app.getAppPath(), tempFileName);
+  const tempFilePath = join(resourcesRoot, tempFileName);
   await fs.writeFile(tempFilePath, '');
   setAttributesSync(tempFilePath, {IS_TEMPORARY: true, IS_HIDDEN: true});
 
@@ -122,7 +122,7 @@ async function dropFile(webContents: WebContents): Promise<string | undefined> {
 
   webContents.startDrag({
     file: tempFilePath,
-    icon: join(__dirname, '..', '..', 'public', 'documents.png'),
+    icon: join(resourcesRoot, 'documents.png'),
   });
 
   const path = await Promise.race([

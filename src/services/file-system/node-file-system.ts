@@ -4,8 +4,6 @@ import {ipcRenderer} from 'electron';
 import {join} from 'node:path';
 import type {DirDescriptor, FileDescriptor, AnyDescriptor} from '@/entities/Descriptor';
 import {isDir} from '@/entities/Descriptor';
-import {IpcRendererMessage} from '../../../electron/main/ipc-renderer-message';
-import {IpcMainMessage} from '../../../electron/main/ipc-main-message';
 
 export class NodeFileSystem extends FileSystem {
   // TODO: add existence check
@@ -43,11 +41,11 @@ export class NodeFileSystem extends FileSystem {
   }
 
   public async startDrag(descriptor: AnyDescriptor) {
-    ipcRenderer.once(IpcMainMessage.FileDropped, (_, path: string | null) => {
+    ipcRenderer.once('file-dropped', (_, path: string | null) => {
       if (path)
         this.saveDescriptor(descriptor, path);
     });
-    ipcRenderer.send(IpcRendererMessage.StartFileDrag);
+    ipcRenderer.send('start-file-drag');
   }
 
 

@@ -7,16 +7,13 @@
   "directories": {
     "output": "release/${version}"
   },
+  "extraFiles": [
+    "resources"
+  ],
   "files": [
     "dist-electron",
-    "dist"
+    "dist",
   ],
-  "mac": {
-    "artifactName": "${productName}_${version}.${ext}",
-    "target": [
-      "dmg"
-    ]
-  },
   "win": {
     "target": [
       {
