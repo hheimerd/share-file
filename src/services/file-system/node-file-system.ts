@@ -39,7 +39,7 @@ export class NodeFileSystem extends FileSystem {
   }
 
   public async startDrag(descriptor: AnyDescriptor) {
-    ipcRenderer.on(IpcMainMessage.FileDropped, (_, path: string | null) => {
+    ipcRenderer.once(IpcMainMessage.FileDropped, (_, path: string | null) => {
       if (path)
         this.saveDescriptor(descriptor, path);
     });
