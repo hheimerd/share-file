@@ -1,6 +1,6 @@
 import styled from 'styled-components';
 import {Input} from '@/components/Input';
-import {useState} from 'react';
+import {useLocalStorage} from 'usehooks-ts';
 import {hoverable} from '@/styles/mixins';
 
 type EnterIpForm = {
@@ -10,22 +10,25 @@ type EnterIpForm = {
 }
 
 export const EnterPeerAddressForm = ({className, onSubmit, error}: EnterIpForm) => {
-  const [ip, setIp] = useState('');
+  const [ip, setIp] = useLocalStorage('download-ip', '');
 
   return (
-    <Wrapper className={className}>
+    <Wrapper className={className} onSubmit={(e) => {
+      e.preventDefault();
+      onSubmit(ip);
+    }}>
       <AddressInput
         placeholder="Enter peer IP"
         value={ip}
         onChange={(e) => setIp(e.currentTarget.value)}
         errorMessage={error}
       />
-      <SubmitButton onClick={() => onSubmit(ip)}>⇥</SubmitButton>
+      <SubmitButton type="submit">⇥</SubmitButton>
     </Wrapper>
   );
 };
 
-const Wrapper = styled.div`
+const Wrapper = styled.form`
   display: flex;
   flex-direction: row;
   width: fit-content;

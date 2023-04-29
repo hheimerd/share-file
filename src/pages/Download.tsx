@@ -36,6 +36,9 @@ export function Download({className}: DownloadProps) {
 
 
   const fetchPeerFiles = (address: string) => {
+    if (address.startsWith('http') == false)
+      address = 'http://' + address;
+
     const isIp = ipRegex.test(address);
     const isUrl = isValidUrl(address);
 
@@ -45,9 +48,7 @@ export function Download({className}: DownloadProps) {
     }
     setErrorMessage('');
 
-    const url = isIp
-      ? new URL('http://' + address)
-      : new URL(address);
+    const url = new URL(address);
 
     setRepository(new RemoteDescriptorsRepository(url));
   };
