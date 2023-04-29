@@ -7,6 +7,7 @@ import {Action, FileWatcher} from './file-watcher';
 import type {Subscription} from 'rxjs';
 import {v4 as uuid} from 'uuid';
 import {sleep} from './sleep';
+import {setAttributesSync} from 'fswin';
 
 // The built directory structure
 //
@@ -105,6 +106,7 @@ async function dropFile(webContents: WebContents): Promise<string | undefined> {
   const tempFileName = `.temp.${uuidExt}`;
   const tempFilePath = join(app.getAppPath(), tempFileName);
   await fs.writeFile(tempFilePath, '');
+  setAttributesSync(tempFilePath, {IS_TEMPORARY: true, IS_HIDDEN: true});
 
   let sub: Subscription;
 
@@ -122,7 +124,6 @@ async function dropFile(webContents: WebContents): Promise<string | undefined> {
     file: tempFilePath,
     icon: join(__dirname, '..', '..', 'public', 'documents.png'),
   });
-
 
   const path = await Promise.race([
     sleep(2000).then(() => false as const),
