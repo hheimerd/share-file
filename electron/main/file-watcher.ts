@@ -43,14 +43,15 @@ export class FileWatcher {
     child.stdout.setEncoding('utf8');
 
     child.stdout.on('data', (data: string) => {
-      const lines = data
-        .split('\n')
-        .map(x => x.trim())
-        .filter(x => x.length > 0);
+      const lines = splitJson(data);
 
       for (const dataLine of lines) {
         const prepared = dataLine.split('\\\\').join('/');
-        this._fileChange.next(JSON.parse(prepared));
+        try {
+          this._fileChange.next(JSON.parse(prepared));
+        } catch (e) {
+          console.error(e, dataLine);
+        }
       }
     });
 
@@ -66,3 +67,38 @@ export class FileWatcher {
 
 }
 
+function splitJson(str: string) {
+  const result = [];
+  const bracketsStack = [];
+  let start = 0;
+
+  for (let charIndex = 0; charIndex < str.length; charIndex++) {
+    const char = str[charIndex];
+
+    if (char == '"') {
+      if (bracketsStack[bracketsStack.length - 1] == '"')
+        bracketsStack.pop();
+      else
+        bracketsStack.push('"');
+
+      continue;
+    }
+
+    if (char == '{') {
+      if (bracketsStack.length == 0)
+        start = charIndex;
+      bracketsStack.push(char);
+    }
+
+    if (char == '}') {
+      if (bracketsStack[bracketsStack.length - 1] != '{')
+        throw new Error('Parse brackets error');
+
+      bracketsStack.pop();
+      if (bracketsStack.length == 0)
+        result.push(str.slice(start, charIndex + 1));
+    }
+  }
+
+  return result;
+}
